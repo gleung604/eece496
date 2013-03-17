@@ -1,0 +1,9 @@
+{% if session_list %}
+    <ul>
+    {% for session in session_list %}
+        <li><a href="/eece496/{{ session.id }}">{{ session.id }} {{ session.location }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No sessions in database.</p>
+{% endif %}

@@ -1,0 +1,9 @@
+{% if session.student.all %}
+    <ul>
+    {% for student in session.student.all %}
+        <li>{{ student.first_name }} {{ student.last_name }}</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No students in this session.</p>
+{% endif %}
