@@ -13,6 +13,9 @@ middleware here, or combine a Django application with an application of another
 framework.
 
 """
+activate_this = 'C:/virtualenvs/django/Scripts/activate_this.py'
+execfile(activate_this, dict(__file__=activate_this))
+
 import os
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings")
