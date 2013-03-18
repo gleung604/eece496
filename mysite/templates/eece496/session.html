@@ -6,12 +6,14 @@
 {% block content %}
 {% if session.student.all %}
     {% for student in session.student.all %}
-        {{ student.first_name }} {{ student.last_name }}
-		<form action="/eece496/" method="post">{% csrf_token %}
-		{{ form.as_p }}
-		<input type="submit" value="Submit" />
-		</form>
-    {% endfor %}
+		{% for attendance in student.attendance_set.all %}
+		{% if attendance.session_id == session.id %}
+        <p><a href="/eece496/{{ session.id }}/{{ attendance.id }}">{{ student.first_name }} {{ student.last_name }}</a></p>
+		{% else %}
+		<p>Student is not in this session</p>
+		{% endif %}
+		{% endfor %}
+	{% endfor %}
 {% else %}
     <p>No students in this session.</p>
 {% endif %}

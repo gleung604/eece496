@@ -40,6 +40,6 @@ class Attendance(models.Model):
     def __unicode__(self):
         return str(self.score)
 
-class SessionForm(ModelForm):
+class AttendanceForm(ModelForm):
     class Meta:
-        model = Session
+        model = Attendance
