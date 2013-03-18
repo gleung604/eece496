@@ -8,9 +8,5 @@ urlpatterns = patterns('',
             queryset=Session.objects.all(),
             context_object_name='session_list',
             template_name='eece496/index.html')),
-    url(r'^(?P<pk>\d+)/$',
-        UpdateView.as_view(
-            model=Session,
-            template_name='eece496/detail.html',
-            success_url='/eece496')),
+    url(r'^(?P<session_id>\d+)/$', 'eece496.views.session'),
 )
