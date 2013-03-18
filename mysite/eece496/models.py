@@ -16,10 +16,19 @@ class Student(models.Model):
         return self.first_name + ' ' + self.last_name
 
 class Session(models.Model):
+    PRESENT_STATUS = 1
+    ABSENT_STATUS = 2
+    EXCUSED_STATUS = 3
+    STATUS_CHOICES = (
+        (PRESENT_STATUS, 'Present'),
+        (ABSENT_STATUS, 'Absent'),
+        (EXCUSED_STATUS, 'Excused'),
+    )
     ta = models.ForeignKey(TA)
     student = models.ManyToManyField(Student, through='Attendance')
     time = models.DateTimeField('session time')
     room = models.CharField(max_length=50)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=PRESENT_STATUS)
     def __unicode__(self):
         return 'Location: %s' % self.room
 
