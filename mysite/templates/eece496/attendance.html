@@ -1,18 +1,12 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{{ session.time }}{% endblock %}
+{% block title %}{{ attendance.id }}{% endblock %}
 
 {% block content %}
-{% if session.student.all %}
-    {% for student in session.student.all %}
-        {{ student.first_name }} {{ student.last_name }}
-		<form action="/eece496/" method="post">{% csrf_token %}
-		{{ form.as_p }}
-		<input type="submit" value="Submit" />
-		</form>
-    {% endfor %}
-{% else %}
-    <p>No students in this session.</p>
-{% endif %}
+<p>Name: {{ attendance.student.first_name }} {{ attendance.student.last_name }}</p>
+<form action="/eece496/" method="post">{% csrf_token %}
+{{ form.as_p }}
+<input type="submit" value="Submit" />
+</form>
 {% endblock %}

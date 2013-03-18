@@ -43,3 +43,4 @@ class Attendance(models.Model):
 class AttendanceForm(ModelForm):
     class Meta:
         model = Attendance
+        fields = ('score', 'status')
