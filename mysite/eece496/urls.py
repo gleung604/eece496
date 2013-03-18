@@ -12,5 +12,7 @@ urlpatterns = patterns('',
         DetailView.as_view(
             model=Session,
             template_name='eece496/session.html')),
-    url(r'^(?P<session_id>\d+)/(?P<attendance_id>\d+)/$', 'eece496.views.attendance'),
+    url(r'^(?P<session_id>\d+)/(?P<attendance_id>\d+)/$',
+        'eece496.views.attendance',
+        name='attendance_form'),
 )

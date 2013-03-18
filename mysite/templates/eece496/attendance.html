@@ -5,7 +5,7 @@
 
 {% block content %}
 <p>Name: {{ attendance.student.first_name }} {{ attendance.student.last_name }}</p>
-<form action="/eece496/" method="post">{% csrf_token %}
+<form action="" method="post">{% csrf_token %}
 {{ form.as_p }}
 <input type="submit" value="Submit" />
 </form>

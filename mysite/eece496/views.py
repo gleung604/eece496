@@ -10,6 +10,11 @@ def attendance(request, session_id, attendance_id):
         if form.is_valid(): # All validation rules pass
             # Process the data in form.cleaned_data
             # ...
+            score = form.cleaned_data['score']
+            status = form.cleaned_data['status']
+            b = Attendance(id=a.id, student_id=a.student_id,
+                           session_id=a.session_id, score=score, status=status)
+            b.save()
             return HttpResponseRedirect('/eece496/') # Redirect after POST
     else:
         form = AttendanceForm(instance=a) # An unbound form
