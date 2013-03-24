@@ -8,40 +8,50 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Deleting field 'Session.status'
-        db.delete_column('eece496_session', 'status')
+        # Deleting field 'Attendance.score'
+        db.delete_column('eece496_attendance', 'score')
 
-        # Adding field 'Attendance.status'
-        db.add_column('eece496_attendance', 'status',
-                      self.gf('django.db.models.fields.IntegerField')(default=1),
+        # Adding field 'Attendance.individual_score'
+        db.add_column('eece496_attendance', 'individual_score',
+                      self.gf('django.db.models.fields.IntegerField')(null=True, blank=True),
+                      keep_default=False)
+
+        # Adding field 'Attendance.group_score'
+        db.add_column('eece496_attendance', 'group_score',
+                      self.gf('django.db.models.fields.IntegerField')(null=True, blank=True),
                       keep_default=False)
 
 
     def backwards(self, orm):
-        # Adding field 'Session.status'
-        db.add_column('eece496_session', 'status',
-                      self.gf('django.db.models.fields.IntegerField')(default=1),
+        # Adding field 'Attendance.score'
+        db.add_column('eece496_attendance', 'score',
+                      self.gf('django.db.models.fields.IntegerField')(default=0),
                       keep_default=False)
 
-        # Deleting field 'Attendance.status'
-        db.delete_column('eece496_attendance', 'status')
+        # Deleting field 'Attendance.individual_score'
+        db.delete_column('eece496_attendance', 'individual_score')
+
+        # Deleting field 'Attendance.group_score'
+        db.delete_column('eece496_attendance', 'group_score')
 
 
     models = {
         'eece496.attendance': {
             'Meta': {'object_name': 'Attendance'},
+            'group_score': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'score': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
+            'individual_score': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'session': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.Session']"}),
             'status': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
-            'student': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.Student']"})
+            'student': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.Student']"}),
+            'ta': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.TA']"}),
+            'time': ('django.db.models.fields.TimeField', [], {})
         },
         'eece496.session': {
             'Meta': {'object_name': 'Session'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'room': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'student': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['eece496.Student']", 'through': "orm['eece496.Attendance']", 'symmetrical': 'False'}),
-            'ta': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.TA']"}),
             'time': ('django.db.models.fields.DateTimeField', [], {})
         },
         'eece496.student': {

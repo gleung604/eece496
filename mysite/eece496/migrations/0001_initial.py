@@ -11,14 +11,17 @@ class Migration(SchemaMigration):
         # Adding model 'TA'
         db.create_table('eece496_ta', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
+            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=50)),
+            ('last_name', self.gf('django.db.models.fields.CharField')(max_length=50)),
         ))
         db.send_create_signal('eece496', ['TA'])
 
         # Adding model 'Student'
         db.create_table('eece496_student', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('name', self.gf('django.db.models.fields.CharField')(max_length=50)),
+            ('first_name', self.gf('django.db.models.fields.CharField')(max_length=50)),
+            ('last_name', self.gf('django.db.models.fields.CharField')(max_length=50)),
+            ('student_number', self.gf('django.db.models.fields.IntegerField')(unique=True)),
             ('group', self.gf('django.db.models.fields.IntegerField')(default=0)),
             ('program', self.gf('django.db.models.fields.CharField')(max_length=50)),
         ))
@@ -27,7 +30,6 @@ class Migration(SchemaMigration):
         # Adding model 'Session'
         db.create_table('eece496_session', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
-            ('ta', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eece496.TA'])),
             ('time', self.gf('django.db.models.fields.DateTimeField')()),
             ('room', self.gf('django.db.models.fields.CharField')(max_length=50)),
         ))
@@ -36,9 +38,12 @@ class Migration(SchemaMigration):
         # Adding model 'Attendance'
         db.create_table('eece496_attendance', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('ta', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eece496.TA'])),
             ('student', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eece496.Student'])),
             ('session', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eece496.Session'])),
             ('score', self.gf('django.db.models.fields.IntegerField')(default=0)),
+            ('time', self.gf('django.db.models.fields.TimeField')()),
+            ('status', self.gf('django.db.models.fields.IntegerField')(default=1)),
         ))
         db.send_create_signal('eece496', ['Attendance'])
 
@@ -63,27 +68,32 @@ class Migration(SchemaMigration):
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'score': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'session': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.Session']"}),
-            'student': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.Student']"})
+            'status': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
+            'student': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.Student']"}),
+            'ta': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.TA']"}),
+            'time': ('django.db.models.fields.TimeField', [], {})
         },
         'eece496.session': {
             'Meta': {'object_name': 'Session'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'room': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'student': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['eece496.Student']", 'through': "orm['eece496.Attendance']", 'symmetrical': 'False'}),
-            'ta': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.TA']"}),
             'time': ('django.db.models.fields.DateTimeField', [], {})
         },
         'eece496.student': {
             'Meta': {'object_name': 'Student'},
+            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'group': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'program': ('django.db.models.fields.CharField', [], {'max_length': '50'})
+            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'program': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
+            'student_number': ('django.db.models.fields.IntegerField', [], {'unique': 'True'})
         },
         'eece496.ta': {
             'Meta': {'object_name': 'TA'},
+            'first_name': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
+            'last_name': ('django.db.models.fields.CharField', [], {'max_length': '50'})
         }
     }
 
