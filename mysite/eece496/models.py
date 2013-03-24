@@ -1,12 +1,7 @@
 from django.db import models
 from django.forms import ModelForm
 from django.utils import formats
-
-class TA(models.Model):
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    def __unicode__(self):
-        return self.first_name + ' ' + self.last_name
+from django.contrib.auth.models import User
 
 class Group(models.Model):
     group_id = models.CharField(max_length=2)
@@ -27,6 +22,13 @@ class Session(models.Model):
     room = models.CharField(max_length=50)
     def __unicode__(self):
         return 'Location: %s' % self.room
+
+class TA(User):
+    class Meta:
+        proxy = True
+
+    def __unicode__(self):
+        return self.first_name + ' ' + self.last_name
 
 class Evaluation(models.Model):
     student = models.ManyToManyField(Student, through='Attendance')
@@ -58,7 +60,6 @@ class Attendance(models.Model):
         return str(self.individual_score)
 
 class AttendanceForm(ModelForm):
-            
     class Meta:
         model = Attendance
         fields = ('student', 'individual_score', 'status')
