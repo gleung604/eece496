@@ -1,5 +1,6 @@
 from django.db import models
 from django.forms import ModelForm
+from django.utils import formats
 
 class TA(models.Model):
     first_name = models.CharField(max_length=50)
@@ -10,7 +11,7 @@ class TA(models.Model):
 class Group(models.Model):
     group_id = models.CharField(max_length=2)
     def __unicode__(self):
-        return 'Group: %s' % self.group_id
+        return self.group_id
 
 class Student(models.Model):
     first_name = models.CharField(max_length=50)
@@ -22,11 +23,20 @@ class Student(models.Model):
         return self.first_name + ' ' + self.last_name
 
 class Session(models.Model):
-    student = models.ManyToManyField(Student, through='Attendance')
     time = models.DateTimeField('session time')
     room = models.CharField(max_length=50)
     def __unicode__(self):
         return 'Location: %s' % self.room
+
+class Evaluation(models.Model):
+    student = models.ManyToManyField(Student, through='Attendance')
+    session = models.ForeignKey(Session)
+    start = models.DateTimeField('start time')
+    end = models.DateTimeField('end time')
+    duration = models.IntegerField('minutes')
+    ta = models.ForeignKey(TA)
+    def __unicode__(self):
+        return formats.date_format(self.start, "SHORT_DATETIME_FORMAT")
 
 class Attendance(models.Model):
     PRESENT_STATUS = 1
@@ -40,10 +50,7 @@ class Attendance(models.Model):
         (VOLUNTEER_STATUS, 'Volunteer'),
     )
     student = models.ForeignKey(Student)
-    session = models.ForeignKey(Session)
-    start = models.TimeField('start time')
-    end = models.TimeField('end time')
-    ta = models.ForeignKey(TA)
+    evaluation = models.ForeignKey(Evaluation)
     group_score = models.IntegerField(blank=True, null=True)
     individual_score = models.IntegerField(blank=True, null=True)
     status = models.IntegerField(choices=STATUS_CHOICES, default=PRESENT_STATUS)

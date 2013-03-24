@@ -42,14 +42,21 @@ class Migration(SchemaMigration):
         ))
         db.send_create_signal('eece496', ['Session'])
 
+        # Adding model 'Evaluation'
+        db.create_table('eece496_evaluation', (
+            ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('session', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eece496.Session'])),
+            ('start', self.gf('django.db.models.fields.DateTimeField')()),
+            ('end', self.gf('django.db.models.fields.DateTimeField')()),
+            ('ta', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eece496.TA'])),
+        ))
+        db.send_create_signal('eece496', ['Evaluation'])
+
         # Adding model 'Attendance'
         db.create_table('eece496_attendance', (
             ('id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
             ('student', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eece496.Student'])),
-            ('session', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eece496.Session'])),
-            ('start', self.gf('django.db.models.fields.TimeField')()),
-            ('end', self.gf('django.db.models.fields.TimeField')()),
-            ('ta', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eece496.TA'])),
+            ('evaluation', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['eece496.Evaluation'])),
             ('group_score', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
             ('individual_score', self.gf('django.db.models.fields.IntegerField')(null=True, blank=True)),
             ('status', self.gf('django.db.models.fields.IntegerField')(default=1)),
@@ -70,6 +77,9 @@ class Migration(SchemaMigration):
         # Deleting model 'Session'
         db.delete_table('eece496_session')
 
+        # Deleting model 'Evaluation'
+        db.delete_table('eece496_evaluation')
+
         # Deleting model 'Attendance'
         db.delete_table('eece496_attendance')
 
@@ -77,14 +87,20 @@ class Migration(SchemaMigration):
     models = {
         'eece496.attendance': {
             'Meta': {'object_name': 'Attendance'},
-            'end': ('django.db.models.fields.TimeField', [], {}),
+            'evaluation': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.Evaluation']"}),
             'group_score': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'individual_score': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
-            'session': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.Session']"}),
-            'start': ('django.db.models.fields.TimeField', [], {}),
             'status': ('django.db.models.fields.IntegerField', [], {'default': '1'}),
-            'student': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.Student']"}),
+            'student': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.Student']"})
+        },
+        'eece496.evaluation': {
+            'Meta': {'object_name': 'Evaluation'},
+            'end': ('django.db.models.fields.DateTimeField', [], {}),
+            'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'session': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.Session']"}),
+            'start': ('django.db.models.fields.DateTimeField', [], {}),
+            'student': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['eece496.Student']", 'through': "orm['eece496.Attendance']", 'symmetrical': 'False'}),
             'ta': ('django.db.models.fields.related.ForeignKey', [], {'to': "orm['eece496.TA']"})
         },
         'eece496.group': {
@@ -96,7 +112,6 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Session'},
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'room': ('django.db.models.fields.CharField', [], {'max_length': '50'}),
-            'student': ('django.db.models.fields.related.ManyToManyField', [], {'to': "orm['eece496.Student']", 'through': "orm['eece496.Attendance']", 'symmetrical': 'False'}),
             'time': ('django.db.models.fields.DateTimeField', [], {})
         },
         'eece496.student': {
