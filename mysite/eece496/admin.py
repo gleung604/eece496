@@ -1,6 +1,5 @@
 from django.contrib import admin
-from eece496.models import TA, Student, Session, Attendance, Group, Evaluation
-
+from eece496.models import TA, Student, Session, Attendance, Group
 class AttendanceInline(admin.TabularInline):
     model = Attendance
     extra = 3
@@ -13,4 +12,3 @@ admin.site.register(Student)
 admin.site.register(Session, SessionAdmin)
 admin.site.register(Attendance)
 admin.site.register(Group)
-admin.site.register(Evaluation)

@@ -28,15 +28,6 @@ class Session(models.Model):
     def __unicode__(self):
         return 'Location: %s' % self.room
 
-class Evaluation(models.Model):
-    start = models.TimeField('start time')
-    end = models.TimeField('end time')
-    session = models.ForeignKey(Session)
-    ta = models.ForeignKey(TA)
-    group_score = models.IntegerField(blank=True, null=True)
-    def __unicode__(self):
-        return 'Evaluation'
-
 class Attendance(models.Model):
     PRESENT_STATUS = 1
     ABSENT_STATUS = 2
@@ -50,6 +41,10 @@ class Attendance(models.Model):
     )
     student = models.ForeignKey(Student)
     session = models.ForeignKey(Session)
+    start = models.TimeField('start time')
+    end = models.TimeField('end time')
+    ta = models.ForeignKey(TA)
+    group_score = models.IntegerField(blank=True, null=True)
     individual_score = models.IntegerField(blank=True, null=True)
     status = models.IntegerField(choices=STATUS_CHOICES, default=PRESENT_STATUS)
     def __unicode__(self):
@@ -59,3 +54,11 @@ class AttendanceForm(ModelForm):
     class Meta:
         model = Attendance
         fields = ('individual_score', 'status')
+        def clean(self):
+            cleaned_data = super(AttendanceForm, self).clean()
+            individual_score = cleaned_data.get("individual_score")
+
+            if individual_score:
+                return cleaned_data
+            else:
+                raise forms.ValidationError("Did not enter score.")
