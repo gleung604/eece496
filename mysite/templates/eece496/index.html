@@ -8,7 +8,7 @@
 
 {% if session_list %}
     {% for session in session_list %}
-        <p><a href="/eece496/{{ session.id }}">{{ session.time }}</a></p>
+        <p><a href="/eece496/{{ session.id }}">{{ session.room}} {{ session.time }}</a></p>
     {% endfor %}
 {% else %}
     <p>No sessions in database.</p>

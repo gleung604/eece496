@@ -4,9 +4,13 @@
 {% block title %}{{ attendance.id }}{% endblock %}
 
 {% block content %}
-<p>Name: {{ attendance.student.first_name }} {{ attendance.student.last_name }}</p>
-<form action="" method="post">{% csrf_token %}
-{{ form.as_p }}
-<input type="submit" value="Submit" />
+<form method="post" action="">{% csrf_token %}
+    {{ formset.management_form }}
+    <table>
+        {% for form in formset %}
+        {{ form }}
+        {% endfor %}
+    </table>
+	<input type="submit" value="Submit" />
 </form>
 {% endblock %}

@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, include, url
 from django.views.generic import DetailView, ListView, UpdateView
-from eece496.models import Session, Attendance
+from eece496.models import Session, Attendance, Evaluation
 
 urlpatterns = patterns('',
     url(r'^$',
@@ -12,7 +12,7 @@ urlpatterns = patterns('',
         DetailView.as_view(
             model=Session,
             template_name='eece496/session.html')),
-    url(r'^(?P<session_id>\d+)/(?P<attendance_id>\d+)/$',
+    url(r'^(?P<session_id>\d+)/(?P<evaluation_id>\d+)/$',
         'eece496.views.attendance',
         name='attendance_form'),
 )

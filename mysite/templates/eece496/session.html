@@ -4,17 +4,11 @@
 {% block title %}{{ session.time }}{% endblock %}
 
 {% block content %}
-{% if session.student.all %}
-    {% for student in session.student.all %}
-		{% for attendance in student.attendance_set.all %}
-		{% if attendance.session_id == session.id %}
-        <p><a href="/eece496/{{ session.id }}/{{ attendance.id }}">{{ student.first_name }} {{ student.last_name }}</a></p>
-		{% else %}
-		<p>Student is not in this session</p>
-		{% endif %}
-		{% endfor %}
+{% if session.evaluation_set.all %}
+    {% for evaluation in session.evaluation_set.all %}
+        <p><a href="/eece496/{{ session.id }}/{{ evaluation.id }}">{{ evaluation.start }}</a></p>
 	{% endfor %}
 {% else %}
-    <p>No students in this session.</p>
+    <p>No evaluations in this session.</p>
 {% endif %}
 {% endblock %}

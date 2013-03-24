@@ -58,14 +58,7 @@ class Attendance(models.Model):
         return str(self.individual_score)
 
 class AttendanceForm(ModelForm):
+            
     class Meta:
         model = Attendance
-        fields = ('individual_score', 'status')
-        def clean(self):
-            cleaned_data = super(AttendanceForm, self).clean()
-            individual_score = cleaned_data.get("individual_score")
-
-            if individual_score:
-                return cleaned_data
-            else:
-                raise forms.ValidationError("Did not enter score.")
+        fields = ('student', 'individual_score', 'status')
