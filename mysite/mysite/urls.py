@@ -1,10 +1,12 @@
 from django.conf.urls import patterns, include, url
+from django.views.generic.simple import direct_to_template, redirect_to
 
 from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
-    url(r'^$', 'django.views.generic.simple.direct_to_template',
+    url(r'^$', redirect_to, {'url': '/home/'}),
+    url(r'^home/$', direct_to_template,
         {'template': 'eece496/index.html'}),
     url(r'^polls/', include('polls.urls')),
     url(r'^eece496/', include('eece496.urls')),

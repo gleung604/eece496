@@ -159,4 +159,4 @@ LOGGING = {
     }
 }
 
-LOGIN_REDIRECT_URL = '/eece496/'
+LOGIN_REDIRECT_URL = '/home/'
