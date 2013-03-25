@@ -4,13 +4,13 @@
 {% block title %}Sessions{% endblock %}
 
 {% block content %}
-<h1>Sessions</h1>
+<h1>Index</h1>
 
-{% if session_list %}
-    {% for session in session_list %}
-        <p><a href="/eece496/{{ session.id }}">{{ session.room}} {{ session.time }}</a></p>
-    {% endfor %}
+{% if user.is_authenticated %}
+<p><a href="/accounts/change_password">Change Password</a></p>
+<p><a href="/accounts/logout/">Logout</a></p>
 {% else %}
-    <p>No sessions in database.</p>
+<p><a href="/accounts/login/">Login</a></p>
 {% endif %}
+
 {% endblock %}

@@ -1,14 +1,16 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{{ session.time }}{% endblock %}
+{% block title %}Sessions{% endblock %}
 
 {% block content %}
-{% if session.evaluation_set.all %}
-    {% for evaluation in session.evaluation_set.all %}
-        <p><a href="/eece496/{{ session.id }}/{{ evaluation.id }}">{{ evaluation.start }}</a></p>
-	{% endfor %}
+<h1>Sessions</h1>
+
+{% if session_list %}
+    {% for session in session_list %}
+        <p><a href="/eece496/{{ session.id }}">{{ session.room}} {{ session.time }}</a></p>
+    {% endfor %}
 {% else %}
-    <p>No evaluations in this session.</p>
+    <p>No sessions in database.</p>
 {% endif %}
 {% endblock %}

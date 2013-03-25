@@ -4,6 +4,8 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
+    url(r'^$', 'django.views.generic.simple.direct_to_template',
+        {'template': 'eece496/index.html'}),
     url(r'^polls/', include('polls.urls')),
     url(r'^eece496/', include('eece496.urls')),
     url(r'^admin/', include(admin.site.urls)),

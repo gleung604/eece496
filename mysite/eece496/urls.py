@@ -8,11 +8,11 @@ urlpatterns = patterns('',
         login_required(ListView.as_view(
             queryset=Session.objects.all(),
             context_object_name='session_list',
-            template_name='eece496/index.html'))),
+            template_name='eece496/session.html'))),
     url(r'^(?P<pk>\d+)/$',
         DetailView.as_view(
             model=Session,
-            template_name='eece496/session.html')),
+            template_name='eece496/evaluation.html')),
     url(r'^(?P<session_id>\d+)/(?P<evaluation_id>\d+)/$',
         'eece496.views.attendance',
         name='attendance_form'),
