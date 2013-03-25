@@ -71,6 +71,17 @@ class AttendanceForm(forms.ModelForm):
 
     status = forms.ChoiceField(widget=forms.RadioSelect, choices=STATUS_CHOICES)
 
+    def clean_individual_score(self):
+        status = self.cleaned_data['status']
+        score = self.cleaned_data['individual_score']
+        if '3' in status:
+            try:
+                return int(score)
+            except TypeError:
+                raise forms.ValidationError("Volunteer score not entered.")
+
+        return score
+
     def save(self, force_insert=False, force_update=False, commit=True):
         m = super(AttendanceForm, self).save(commit=False)
         if commit:
