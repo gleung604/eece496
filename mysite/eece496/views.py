@@ -6,6 +6,7 @@ from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
 from eece496.models import Attendance, AttendanceForm, Evaluation, Session, TA
 
+@login_required
 def sessions(request):
     try:
         evaluations = TA.objects.get(pk=request.user.id).evaluation_set
@@ -35,7 +36,7 @@ def attendance(request, session_id, evaluation_id):
             for form in formset:
                 form.fields['individual_score'].widget.attrs['readonly']=True
             formset.save()
-            return HttpResponseRedirect('/eece496/') # Redirect after POST
+            return HttpResponseRedirect('') # Redirect after POST
     else:
         formset = AttendanceFormSet(instance=evaluation) # An unbound form
 

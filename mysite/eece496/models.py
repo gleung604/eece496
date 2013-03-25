@@ -1,5 +1,5 @@
 from django.db import models
-from django.forms import ModelForm
+from django import forms
 from django.utils import formats
 from django.contrib.auth.models import User
 
@@ -43,13 +43,13 @@ class Evaluation(models.Model):
 class Attendance(models.Model):
     PRESENT_STATUS = 1
     ABSENT_STATUS = 2
-    EXCUSED_STATUS = 3
-    VOLUNTEER_STATUS = 4
+    VOLUNTEER_STATUS = 3
+    EXCUSED_STATUS = 4
     STATUS_CHOICES = (
         (PRESENT_STATUS, 'Present'),
         (ABSENT_STATUS, 'Absent'),
-        (EXCUSED_STATUS, 'Excused'),
         (VOLUNTEER_STATUS, 'Volunteer'),
+        (EXCUSED_STATUS, 'Excused'),
     )
     student = models.ForeignKey(Student)
     evaluation = models.ForeignKey(Evaluation)
@@ -59,7 +59,24 @@ class Attendance(models.Model):
     def __unicode__(self):
         return str(self.individual_score)
 
-class AttendanceForm(ModelForm):
+class AttendanceForm(forms.ModelForm):
+    PRESENT_STATUS = 1
+    ABSENT_STATUS = 2
+    VOLUNTEER_STATUS = 3
+    STATUS_CHOICES = (
+        (PRESENT_STATUS, 'Present'),
+        (ABSENT_STATUS, 'Absent'),
+        (VOLUNTEER_STATUS, 'Volunteer'),
+    )
+
+    status = forms.ChoiceField(widget=forms.RadioSelect, choices=STATUS_CHOICES)
+
+    def save(self, force_insert=False, force_update=False, commit=True):
+        m = super(AttendanceForm, self).save(commit=False)
+        if commit:
+            m.save()
+        return m
+    
     class Meta:
         model = Attendance
-        fields = ('student', 'individual_score', 'status')
+        fields = ('student', 'status', 'individual_score')
