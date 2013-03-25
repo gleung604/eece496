@@ -4,15 +4,11 @@ from django.contrib.auth.decorators import login_required
 from eece496.models import Session, Attendance, Evaluation
 
 urlpatterns = patterns('',
-    url(r'^$',
-        login_required(ListView.as_view(
-            queryset=Session.objects.all(),
-            context_object_name='session_list',
-            template_name='eece496/session.html'))),
+    url(r'^$', 'eece496.views.sessions'),
     url(r'^(?P<pk>\d+)/$',
-        DetailView.as_view(
+        login_required(DetailView.as_view(
             model=Session,
-            template_name='eece496/evaluation.html')),
+            template_name='eece496/evaluation.html'))),
     url(r'^(?P<session_id>\d+)/(?P<evaluation_id>\d+)/$',
         'eece496.views.attendance',
         name='attendance_form'),
