@@ -19,10 +19,23 @@ def sessions(request):
     })
 
 @login_required
+def evaluations(request, session_id):
+    try:
+        evaluations = Session.objects.get(pk=session_id).evaluation_set.filter(ta_id=request.user.id)
+        session = Session.objects.get(pk=session_id)
+    except Evaluation.DoesNotExist:
+        raise Http404
+
+    return render(request, 'eece496/evaluation.html', {
+        'evaluation_list': evaluations,
+        'session': session,
+    })
+
+@login_required
 def attendance(request, session_id, evaluation_id):
     try:
         attendances = Attendance.objects.filter(evaluation_id=evaluation_id).values()
-        evaluation = Evaluation.objects.get(pk=evaluation_id)
+        evaluation = TA.objects.get(pk=request.user.id).evaluation_set.get(pk=evaluation_id)
         AttendanceFormSet = inlineformset_factory(Evaluation, Attendance, can_delete=False,
                                                   extra=0, form=AttendanceForm,
                                                   formset=BaseAttendanceFormSet)
@@ -43,5 +56,4 @@ def attendance(request, session_id, evaluation_id):
 
     return render(request, 'eece496/attendance.html', {
         'formset': formset,
-        'attendances': attendances,
     })

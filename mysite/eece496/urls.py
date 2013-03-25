@@ -5,10 +5,7 @@ from eece496.models import Session, Attendance, Evaluation
 
 urlpatterns = patterns('',
     url(r'^$', 'eece496.views.sessions'),
-    url(r'^(?P<pk>\d+)/$',
-        login_required(DetailView.as_view(
-            model=Session,
-            template_name='eece496/evaluation.html'))),
+    url(r'^(?P<session_id>\d+)/$', 'eece496.views.evaluations'),
     url(r'^(?P<session_id>\d+)/(?P<evaluation_id>\d+)/$',
         'eece496.views.attendance',
         name='attendance_form'),
