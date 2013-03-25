@@ -1,5 +1,6 @@
 from django.db import models
 from django import forms
+from django.forms.models import BaseInlineFormSet
 from django.utils import formats
 from django.contrib.auth.models import User
 
@@ -76,10 +77,9 @@ class AttendanceForm(forms.ModelForm):
         score = self.cleaned_data['individual_score']
         if '3' in status:
             try:
-                return int(score)
+                int(score)
             except TypeError:
                 raise forms.ValidationError("Volunteer score not entered.")
-
         return score
 
     def save(self, force_insert=False, force_update=False, commit=True):
@@ -90,4 +90,26 @@ class AttendanceForm(forms.ModelForm):
     
     class Meta:
         model = Attendance
-        fields = ('student', 'status', 'individual_score')
+        fields = ('student', 'status', 'individual_score', 'group_score')
+
+class BaseAttendanceFormSet(BaseInlineFormSet):
+#    def add_fields(self, form, index):
+#        super(BaseAttendanceFormSet, self).add_fields(form, index)
+#        form.fields["group_score"] = forms.IntegerField()
+
+    def clean(self):
+        """Checks that all present students have the same group score"""
+        if any(self.errors):
+            return
+        score = -1
+        for i in range(0, self.total_form_count()):
+            form = self.forms[i]
+            status = form.cleaned_data['status']
+            group_score = form.cleaned_data['group_score']
+            if '2' not in status and score == -1:
+                score = group_score
+            elif '2' not in status and group_score != score:
+                raise forms.ValidationError("Students have different group scores.")
+            elif '2' in status and group_score != 0:
+                raise forms.ValidationError("Absent student has a non-zero score.")
+                
