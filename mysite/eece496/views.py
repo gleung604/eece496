@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.views.generic import ListView
 from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
-from eece496.models import Attendance, AttendanceForm, Evaluation, Session, TA, BaseAttendanceFormSet
+from eece496.models import Attendance, AttendanceForm, Evaluation, Session, TA
 
 @login_required
 def sessions(request):
@@ -37,8 +37,7 @@ def attendance(request, session_id, evaluation_id):
         attendances = Attendance.objects.filter(evaluation_id=evaluation_id).values()
         evaluation = TA.objects.get(pk=request.user.id).evaluation_set.get(pk=evaluation_id)
         AttendanceFormSet = inlineformset_factory(Evaluation, Attendance, can_delete=False,
-                                                  extra=0, form=AttendanceForm,
-                                                  formset=BaseAttendanceFormSet)
+                                                  extra=0, form=AttendanceForm)
     except Attendance.DoesNotExist:
         raise Http404
     
@@ -47,8 +46,7 @@ def attendance(request, session_id, evaluation_id):
         if formset.is_valid(): # All validation rules pass
             # Process the data in form.cleaned_data
             # ...
-            for form in formset:
-                form.fields['individual_score'].widget.attrs['readonly']=True
+            #for form in formset:
             formset.save()
             return HttpResponseRedirect('') # Redirect after POST
     else:

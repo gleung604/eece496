@@ -63,53 +63,60 @@ class Attendance(models.Model):
 class AttendanceForm(forms.ModelForm):
     PRESENT_STATUS = 1
     ABSENT_STATUS = 2
-    VOLUNTEER_STATUS = 3
-    STATUS_CHOICES = (
-        (PRESENT_STATUS, 'Present'),
-        (ABSENT_STATUS, 'Absent'),
-        (VOLUNTEER_STATUS, 'Volunteer'),
-    )
 
-    status = forms.ChoiceField(widget=forms.RadioSelect, choices=STATUS_CHOICES)
+    absent = forms.BooleanField()
 
-    def clean_individual_score(self):
-        status = self.cleaned_data['status']
-        score = self.cleaned_data['individual_score']
-        if '3' in status:
-            try:
-                int(score)
-            except TypeError:
-                raise forms.ValidationError("Volunteer score not entered.")
-        return score
+    def __init__(self, *args, **kwargs):
+        super(AttendanceForm, self).__init__(*args, **kwargs)
+        if self.instance.status == self.PRESENT_STATUS:
+            self.fields['absent'] = forms.BooleanField(initial=False, required=False)
+        else:
+            self.fields['absent'] = forms.BooleanField(initial=True, required=False)
 
     def save(self, force_insert=False, force_update=False, commit=True):
         m = super(AttendanceForm, self).save(commit=False)
+        if self.cleaned_data['absent'] == True:
+            self.instance.status=self.ABSENT_STATUS
+        else:
+            self.instance.status=self.PRESENT_STATUS
         if commit:
             m.save()
         return m
     
     class Meta:
         model = Attendance
-        fields = ('student', 'status', 'individual_score', 'group_score')
+        fields = ('student', 'absent')
 
-class BaseAttendanceFormSet(BaseInlineFormSet):
+#class AttendanceForm(forms.Form):
+#    PRESENT_STATUS = 1
+#    ABSENT_STATUS = 2
+#    absent = forms.BooleanField()
+#    def save(self, students, *args, **kwargs):
+#        for student in students:
+#            if absent == True:
+#                student.status = ABSENT_STATUS
+#            else:
+#                student.status = PRESENT_STATUS
+#        super(AttendanceForm, self).save(*args, **kwargs)
+
+#class BaseAttendanceFormSet(BaseInlineFormSet):
 #    def add_fields(self, form, index):
 #        super(BaseAttendanceFormSet, self).add_fields(form, index)
 #        form.fields["group_score"] = forms.IntegerField()
 
-    def clean(self):
-        """Checks that all present students have the same group score"""
-        if any(self.errors):
-            return
-        score = -1
-        for i in range(0, self.total_form_count()):
-            form = self.forms[i]
-            status = form.cleaned_data['status']
-            group_score = form.cleaned_data['group_score']
-            if '2' not in status and score == -1:
-                score = group_score
-            elif '2' not in status and group_score != score:
-                raise forms.ValidationError("Students have different group scores.")
-            elif '2' in status and group_score != 0:
-                raise forms.ValidationError("Absent student has a non-zero score.")
+#    def clean(self):
+#        """Checks that all present students have the same group score"""
+#        if any(self.errors):
+#            return
+#        score = -1
+#        for i in range(0, self.total_form_count()):
+#            form = self.forms[i]
+#            status = form.cleaned_data['status']
+#            group_score = form.cleaned_data['group_score']
+#            if '2' not in status and score == -1:
+#                score = group_score
+#            elif '2' not in status and group_score != score:
+#                raise forms.ValidationError("Students have different group scores.")
+#            elif '2' in status and group_score != 0:
+#                raise forms.ValidationError("Absent student has a non-zero score.")
                 
