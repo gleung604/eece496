@@ -44,14 +44,21 @@ def attendance(request, session_id, evaluation_id):
     if request.method == 'POST': # If the form has been submitted...
         group_form = GroupForm(request.POST)
         formset = AttendanceFormSet(request.POST, request.FILES, instance=evaluation) # A form bound to the POST data
-        if formset.is_valid(): # All validation rules pass
+        if group_form.is_valid() and formset.is_valid(): # All validation rules pass
             # Process the data in form.cleaned_data
             # ...
             #for form in formset:
-            formset.save()
+            for form in formset:
+                attendance = form.save(commit=False)
+                if attendance.status == Attendance.PRESENT_STATUS:
+                    group_score = group_form.cleaned_data['score']
+                else:
+                    group_score = 0
+                attendance.group_score = group_score
+                attendance.save()
             return HttpResponseRedirect('') # Redirect after POST
     else:
-        group_form = GroupForm(evaluation=evaluation)
+        group_form = GroupForm()
         formset = AttendanceFormSet(instance=evaluation) # An unbound form
 
     return render(request, 'eece496/attendance.html', {
