@@ -7,10 +7,22 @@
 <form method="post" action="">{% csrf_token %}
 <table>
 <tr>
+    <td>{{ evaluatee_form.student.label }}</td>
+    <td>{{ evaluatee_form.student }}</td>
+</tr>
+<tr>
+	<td>{{ evaluatee_form.individual_score.label }}</td>
+    <td>{{ evaluatee_form.individual_score }}</td>
+</tr>
+</table>
+<br>
+<table>
+<tr>
     <td>{{ group_form.score.label }}</td>
     <td>{{ group_form.score }}</td>
 </tr>
 </table>
+<br>
     {{ formset.management_form }}
 {{ formset.non_form_errors.as_ul }}
 <table id="formset" class="form">

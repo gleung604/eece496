@@ -5,9 +5,9 @@ from django.utils import formats
 from django.contrib.auth.models import User
 
 class Group(models.Model):
-    group_id = models.CharField(max_length=2)
+    group_code = models.CharField(max_length=2)
     def __unicode__(self):
-        return self.group_id
+        return self.group_code
 
 class Student(models.Model):
     first_name = models.CharField(max_length=50)
@@ -42,46 +42,35 @@ class Evaluation(models.Model):
         return formats.date_format(self.start, "SHORT_DATETIME_FORMAT")
 
 class Attendance(models.Model):
-    PRESENT_STATUS = 1
-    ABSENT_STATUS = 2
-    VOLUNTEER_STATUS = 3
-    EXCUSED_STATUS = 4
-    STATUS_CHOICES = (
-        (PRESENT_STATUS, 'Present'),
-        (ABSENT_STATUS, 'Absent'),
-        (VOLUNTEER_STATUS, 'Volunteer'),
-        (EXCUSED_STATUS, 'Excused'),
-    )
     student = models.ForeignKey(Student)
     evaluation = models.ForeignKey(Evaluation)
     group_score = models.IntegerField(blank=True, null=True)
     individual_score = models.IntegerField(blank=True, null=True)
-    status = models.IntegerField(choices=STATUS_CHOICES, default=PRESENT_STATUS)
+    absent = models.BooleanField(default=False)
+    excused = models.BooleanField(default=False)
+    volunteer = models.BooleanField(default=False)
     def __unicode__(self):
         return str(self.individual_score)
 
 class AttendanceForm(forms.ModelForm):
-    PRESENT_STATUS = 1
-    ABSENT_STATUS = 2
+#    absent = forms.BooleanField()
 
-    absent = forms.BooleanField()
+#    def __init__(self, *args, **kwargs):
+#        super(AttendanceForm, self).__init__(*args, **kwargs)
+#        if self.instance.absent == True:
+#            self.fields['absent'] = forms.BooleanField(initial=True, required=False)
+#        else:
+#            self.fields['absent'] = forms.BooleanField(initial=False, required=False)
 
-    def __init__(self, *args, **kwargs):
-        super(AttendanceForm, self).__init__(*args, **kwargs)
-        if self.instance.status == self.PRESENT_STATUS:
-            self.fields['absent'] = forms.BooleanField(initial=False, required=False)
-        else:
-            self.fields['absent'] = forms.BooleanField(initial=True, required=False)
-
-    def save(self, force_insert=False, force_update=False, commit=True):
-        m = super(AttendanceForm, self).save(commit=False)
-        if self.cleaned_data['absent'] == True:
-            self.instance.status=self.ABSENT_STATUS
-        else:
-            self.instance.status=self.PRESENT_STATUS
-        if commit:
-            m.save()
-        return m
+#    def save(self, force_insert=False, force_update=False, commit=True):
+#        m = super(AttendanceForm, self).save(commit=False)
+#        if self.cleaned_data['absent'] == True:
+#            self.instance.absent=True
+#        else:
+#            self.instance.absent=False
+#        if commit:
+#            m.save()
+#        return m
     
     class Meta:
         model = Attendance
@@ -89,6 +78,11 @@ class AttendanceForm(forms.ModelForm):
 
 class GroupForm(forms.Form):
     score = forms.IntegerField()
+
+class EvaluateeForm(forms.ModelForm):
+    class Meta:
+        model = Attendance
+        fields = ('student', 'individual_score')
         
 
 #class AttendanceForm(forms.Form):

@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.views.generic import ListView
 from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
-from eece496.models import GroupForm, Attendance, AttendanceForm, Evaluation, Session, TA
+from eece496.models import EvaluateeForm, GroupForm, Attendance, AttendanceForm, Evaluation, Session, TA
 
 @login_required
 def sessions(request):
@@ -33,35 +33,49 @@ def evaluations(request, session_id):
 
 @login_required
 def attendance(request, session_id, evaluation_id):
-    try:
-        attendances = Attendance.objects.filter(evaluation_id=evaluation_id).values()
-        evaluation = TA.objects.get(pk=request.user.id).evaluation_set.get(pk=evaluation_id)
-        AttendanceFormSet = inlineformset_factory(Evaluation, Attendance, can_delete=False,
+    attendances = Attendance.objects.filter(evaluation_id=evaluation_id)
+    evaluation = TA.objects.get(pk=request.user.id).evaluation_set.get(pk=evaluation_id)
+    AttendanceFormSet = inlineformset_factory(Evaluation, Attendance, can_delete=False,
                                                   extra=0, form=AttendanceForm)
-    except Attendance.DoesNotExist:
-        raise Http404
+    evaluatee = selectEvaluatee(attendances)
+
     
     if request.method == 'POST': # If the form has been submitted...
+        evaluatee_form = EvaluateeForm(request.POST)
         group_form = GroupForm(request.POST)
         formset = AttendanceFormSet(request.POST, request.FILES, instance=evaluation) # A form bound to the POST data
-        if group_form.is_valid() and formset.is_valid(): # All validation rules pass
+        if formset.is_valid(): # All validation rules pass
             # Process the data in form.cleaned_data
             # ...
             #for form in formset:
             for form in formset:
                 attendance = form.save(commit=False)
-                if attendance.status == Attendance.PRESENT_STATUS:
-                    group_score = group_form.cleaned_data['score']
-                else:
-                    group_score = 0
-                attendance.group_score = group_score
+                if group_form.is_valid():
+                    if attendance.absent == False:
+                        group_score = group_form.cleaned_data['score']
+                    else:
+                        group_score = 0
+                    attendance.group_score = group_score
                 attendance.save()
             return HttpResponseRedirect('') # Redirect after POST
     else:
+        evaluatee_form = EvaluateeForm(instance=evaluatee)
         group_form = GroupForm()
         formset = AttendanceFormSet(instance=evaluation) # An unbound form
 
     return render(request, 'eece496/attendance.html', {
+        'evaluatee_form': evaluatee_form,
         'group_form': group_form,
         'formset': formset,
     })
+
+def selectEvaluatee(attendances):
+    num_scores = None
+    evaluatee = attendances[0]
+    for attendance in attendances:
+        student = attendance.student
+        count = student.attendance_set.exclude(individual_score__exact=None).count()
+        if num_scores == None or count < numScores:
+            numScores = count
+            evaluatee = attendances.get(student_id=student.id)
+    return evaluatee
