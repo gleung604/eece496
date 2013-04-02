@@ -1,5 +1,6 @@
 # Create your views here.
 from django.shortcuts import get_object_or_404, render
+from django.contrib import messages
 from django.http import HttpResponseRedirect, Http404
 from django.views.generic import ListView
 from django.forms.models import inlineformset_factory
@@ -33,15 +34,18 @@ def evaluations(request, session_id):
 
 @login_required
 def attendance(request, session_id, evaluation_id):
-    attendances = Attendance.objects.filter(evaluation_id=evaluation_id)
-    evaluation = TA.objects.get(pk=request.user.id).evaluation_set.get(pk=evaluation_id)
-    AttendanceFormSet = inlineformset_factory(Evaluation, Attendance, can_delete=False,
+    try:
+        attendances = Attendance.objects.filter(evaluation_id=evaluation_id)
+        evaluation = TA.objects.get(pk=request.user.id).evaluation_set.get(pk=evaluation_id)
+        AttendanceFormSet = inlineformset_factory(Evaluation, Attendance, can_delete=False,
                                                   extra=0, form=AttendanceForm)
-    evaluatee = selectEvaluatee(attendances)
+        evaluatee = selectEvaluatee(attendances)
 
+    except Attendance.DoesNotExist:
+        return Http404
     
     if request.method == 'POST': # If the form has been submitted...
-        evaluatee_form = EvaluateeForm(request.POST)
+        evaluatee_form = EvaluateeForm(request.POST, instance=evaluatee)
         group_form = GroupForm(request.POST)
         formset = AttendanceFormSet(request.POST, request.FILES, instance=evaluation) # A form bound to the POST data
         if formset.is_valid(): # All validation rules pass
@@ -57,6 +61,9 @@ def attendance(request, session_id, evaluation_id):
                         group_score = 0
                     attendance.group_score = group_score
                 attendance.save()
+            if evaluatee_form.is_valid():
+                evaluatee = evaluatee_form.save()
+            messages.success(request, 'Update successful.')
             return HttpResponseRedirect('') # Redirect after POST
     else:
         evaluatee_form = EvaluateeForm(instance=evaluatee)
@@ -67,15 +74,16 @@ def attendance(request, session_id, evaluation_id):
         'evaluatee_form': evaluatee_form,
         'group_form': group_form,
         'formset': formset,
+        'evaluatee': evaluatee,
+        'attendances': attendances,
     })
 
 def selectEvaluatee(attendances):
     num_scores = None
-    evaluatee = attendances[0]
     for attendance in attendances:
         student = attendance.student
         count = student.attendance_set.exclude(individual_score__exact=None).count()
-        if num_scores == None or count < numScores:
-            numScores = count
+        if num_scores == None or count < num_scores:
+            num_scores = count
             evaluatee = attendances.get(student_id=student.id)
     return evaluatee

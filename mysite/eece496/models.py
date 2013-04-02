@@ -77,7 +77,7 @@ class AttendanceForm(forms.ModelForm):
         fields = ('student', 'absent')
 
 class GroupForm(forms.Form):
-    score = forms.IntegerField()
+    score = forms.IntegerField(label='group score')
 
 class EvaluateeForm(forms.ModelForm):
     class Meta:
