@@ -5,6 +5,12 @@
 
 {% block content %}
 <form method="post" action="">{% csrf_token %}
+<table>
+<tr>
+    <td>{{ group_form.score.label }}</td>
+    <td>{{ group_form.score }}</td>
+</tr>
+</table>
     {{ formset.management_form }}
 {{ formset.non_form_errors.as_ul }}
 <table id="formset" class="form">

@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect, Http404
 from django.views.generic import ListView
 from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
-from eece496.models import Attendance, AttendanceForm, Evaluation, Session, TA
+from eece496.models import GroupForm, Attendance, AttendanceForm, Evaluation, Session, TA
 
 @login_required
 def sessions(request):
@@ -42,6 +42,7 @@ def attendance(request, session_id, evaluation_id):
         raise Http404
     
     if request.method == 'POST': # If the form has been submitted...
+        group_form = GroupForm(request.POST)
         formset = AttendanceFormSet(request.POST, request.FILES, instance=evaluation) # A form bound to the POST data
         if formset.is_valid(): # All validation rules pass
             # Process the data in form.cleaned_data
@@ -50,8 +51,10 @@ def attendance(request, session_id, evaluation_id):
             formset.save()
             return HttpResponseRedirect('') # Redirect after POST
     else:
+        group_form = GroupForm(evaluation=evaluation)
         formset = AttendanceFormSet(instance=evaluation) # An unbound form
 
     return render(request, 'eece496/attendance.html', {
+        'group_form': group_form,
         'formset': formset,
     })

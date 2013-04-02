@@ -87,6 +87,25 @@ class AttendanceForm(forms.ModelForm):
         model = Attendance
         fields = ('student', 'absent')
 
+class GroupForm(forms.Form):
+    PRESENT_STATUS = 1
+    ABSENT_STATUS = 2
+    
+    score = forms.IntegerField()
+
+    def __init__(self, evaluation, *args, **kwargs):
+        super(GroupForm, self).__init__(*args, **kwargs)
+        attendances = Evaluation.attendance_set
+
+    def save(self, commit = True, *args, **kwargs):
+        for attendance in attendances:
+            if attendance.status == self.PRESENT_STATUS:
+                attendance.group_score = score
+            else:
+                attendance.group_score = 0
+        super(GroupForm, self).save(commit = commit, *args, **kwargs)
+        
+
 #class AttendanceForm(forms.Form):
 #    PRESENT_STATUS = 1
 #    ABSENT_STATUS = 2
