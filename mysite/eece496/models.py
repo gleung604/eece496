@@ -26,6 +26,7 @@ class Course(models.Model):
 class COGS(models.Model):
     name = models.CharField(max_length=5)
     time = models.DateTimeField('session time')
+    course = models.ForeignKey(Course)
     def __unicode__(self):
         return self.name
 
@@ -83,11 +84,14 @@ class AttendanceForm(forms.ModelForm):
 #        if commit:
 #            m.save()
 #        return m
+
+    def clean_student(self):
+        return self.instance.student
     
     class Meta:
         model = Attendance
         fields = ('student', 'absent')
-
+        
 class GroupForm(forms.Form):
     score = forms.IntegerField(label='group score')
 
