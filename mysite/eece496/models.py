@@ -45,6 +45,7 @@ class TA(User):
 
 class Evaluation(models.Model):
     evaluatee = models.ForeignKey('Attendance', related_name="evaluatee_set", null=True, blank=True)
+    volunteer = models.BooleanField(default=False)
     student = models.ManyToManyField(Student, through='Attendance', related_name="evaluation_set")
     session = models.ForeignKey(Session)
     start = models.DateTimeField('start time')
@@ -61,7 +62,6 @@ class Attendance(models.Model):
     individual_score = models.IntegerField(blank=True, null=True)
     absent = models.BooleanField(default=False)
     excused = models.BooleanField(default=False)
-    volunteer = models.BooleanField(default=False)
     def __unicode__(self):
         return str(self.student) + ' ' + str(self.evaluation)
     
@@ -93,10 +93,16 @@ class AttendanceForm(forms.ModelForm):
 
     def clean_student(self):
         return self.instance.student
+
+    def asdf(self):
+        print 'asdf'
     
     class Meta:
         model = Attendance
         fields = ('student', 'absent')
+        widgets = {
+            'absent': forms.CheckboxInput(attrs = {'onclick': 'asdf()'}),
+        }
         
 class GroupForm(forms.Form):
     score = forms.IntegerField(label='group score')
