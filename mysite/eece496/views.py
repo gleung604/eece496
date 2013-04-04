@@ -74,7 +74,7 @@ def attendance(request, session_id, evaluation_id):
         'evaluation_form': evaluation_form,
         'group_form': group_form,
         'formset': formset,
-        'attendances': attendances,
+        'evaluation': evaluation,
     })
 
 def selectEvaluatee(attendances):

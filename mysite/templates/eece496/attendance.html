@@ -59,4 +59,7 @@
 </table>
 	<input type="submit" value="Submit" />
 </form>
+{% if evaluation.next_evaluation %}
+<p>{{ evaluation.next_evaluation }}</p>
+{% endif %}
 {% endblock %}

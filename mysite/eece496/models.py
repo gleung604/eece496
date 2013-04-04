@@ -93,14 +93,16 @@ class GroupForm(forms.Form):
     score = forms.IntegerField(label='group score')
 
 class EvaluationForm(forms.ModelForm):
-    individual_score = forms.IntegerField(label='score')
+    individual_score = forms.IntegerField(label='score', required=False)
 
     def __init__(self, *args, **kwargs):
         evaluation = kwargs.get('instance', {})
-        initial = kwargs.get('initial', {})
-        initial['individual_score'] = evaluation.evaluatee.individual_score
-        kwargs['initial'] = initial
+        if evaluation.evaluatee != None:
+            initial = kwargs.get('initial', {})
+            initial['individual_score'] = evaluation.evaluatee.individual_score
+            kwargs['initial'] = initial
         super(EvaluationForm, self).__init__(*args, **kwargs)
+        self.fields['evaluatee'].queryset = Attendance.objects.filter(evaluation_id=evaluation.id)
 
     def save(self, commit=True):
         instance = super(EvaluationForm, self).save(commit=False)
