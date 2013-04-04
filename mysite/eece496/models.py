@@ -43,14 +43,14 @@ class TA(User):
         return self.first_name + ' ' + self.last_name
 
 class Evaluation(models.Model):
-    evaluatee = models.ForeignKey(Student, related_name="evaluatee_set")
+    evaluatee = models.ForeignKey('Attendance', related_name="evaluatee_set", null=True, blank=True)
     student = models.ManyToManyField(Student, through='Attendance', related_name="evaluation_set")
     session = models.ForeignKey(Session)
     start = models.DateTimeField('start time')
     end = models.DateTimeField('end time')
     ta = models.ForeignKey(TA)
     has_next = models.BooleanField()
-    next_evaluation = models.ForeignKey('self')
+    next_evaluation = models.ForeignKey('self', null=True, blank=True)
     def __unicode__(self):
         return formats.date_format(self.start, "SHORT_DATETIME_FORMAT")
 
@@ -92,10 +92,28 @@ class AttendanceForm(forms.ModelForm):
 class GroupForm(forms.Form):
     score = forms.IntegerField(label='group score')
 
-class EvaluateeForm(forms.ModelForm):
+class EvaluationForm(forms.ModelForm):
+    individual_score = forms.IntegerField(label='score')
+
+    def __init__(self, *args, **kwargs):
+        evaluation = kwargs.get('instance', {})
+        initial = kwargs.get('initial', {})
+        initial['individual_score'] = evaluation.evaluatee.individual_score
+        kwargs['initial'] = initial
+        super(EvaluationForm, self).__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        instance = super(EvaluationForm, self).save(commit=False)
+        attendance = Attendance.objects.get(pk=instance.evaluatee.id)
+        attendance.individual_score = self.cleaned_data.get('individual_score')
+        attendance.save()
+        if commit:
+            instance.save()
+        return instance
+    
     class Meta:
-        model = Attendance
-        fields = ('student', 'individual_score')
+        model = Evaluation
+        fields = ('evaluatee', 'individual_score')
         
 
 #class AttendanceForm(forms.Form):

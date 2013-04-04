@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{{ evaluatee.id }}{% endblock %}
+{% block title %}Title{% endblock %}
 
 {% block content %}
 {% if messages %}
@@ -14,12 +14,12 @@
 <form method="post" action="">{% csrf_token %}
 <table>
 <tr>
-    <td>{{ evaluatee_form.student.label }}</td>
-    <td>{{ evaluatee_form.student }}</td>
+    <td>{{ evaluation_form.evaluatee.label|capfirst }}</td>
+    <td>{{ evaluation_form.evaluatee }}</td>
 </tr>
 <tr>
-	<td>{{ evaluatee_form.individual_score.label }}</td>
-    <td>{{ evaluatee_form.individual_score }}</td>
+	<td>{{ evaluation_form.individual_score.label|capfirst }}</td>
+    <td>{{ evaluation_form.individual_score }}</td>
 </tr>
 </table>
 <br>
