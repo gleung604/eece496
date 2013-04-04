@@ -18,8 +18,19 @@ class Student(models.Model):
     def __unicode__(self):
         return self.first_name + ' ' + self.last_name
 
-class Session(models.Model):
+class Course(models.Model):
+    course_code = models.CharField(max_length=10)
+    def __unicode__(self):
+        return self.course_code
+
+class COGS(models.Model):
+    name = models.CharField(max_length=5)
     time = models.DateTimeField('session time')
+    def __unicode__(self):
+        return self.name
+
+class Session(models.Model):
+    cogs = models.ForeignKey(COGS)
     room = models.CharField(max_length=50)
     def __unicode__(self):
         return 'Location: %s' % self.room
@@ -32,12 +43,14 @@ class TA(User):
         return self.first_name + ' ' + self.last_name
 
 class Evaluation(models.Model):
-    student = models.ManyToManyField(Student, through='Attendance')
+    evaluatee = models.ForeignKey(Student, related_name="evaluatee_set")
+    student = models.ManyToManyField(Student, through='Attendance', related_name="evaluation_set")
     session = models.ForeignKey(Session)
     start = models.DateTimeField('start time')
     end = models.DateTimeField('end time')
-    duration = models.IntegerField('minutes')
     ta = models.ForeignKey(TA)
+    has_next = models.BooleanField()
+    next_evaluation = models.ForeignKey('self')
     def __unicode__(self):
         return formats.date_format(self.start, "SHORT_DATETIME_FORMAT")
 
@@ -50,8 +63,8 @@ class Attendance(models.Model):
     excused = models.BooleanField(default=False)
     volunteer = models.BooleanField(default=False)
     def __unicode__(self):
-        return str(self.individual_score)
-
+        return str(self.student) + ' ' + str(self.evaluation)
+    
 class AttendanceForm(forms.ModelForm):
 #    absent = forms.BooleanField()
 
