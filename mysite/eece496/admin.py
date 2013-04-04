@@ -46,7 +46,7 @@ class StudentAdmin(admin.ModelAdmin):
     list_display = ('first_name', 'last_name', 'student_number')
 
 class AttendanceAdmin(admin.ModelAdmin):
-    list_display = ('student', 'evaluation', 'absent', 'excused', 'volunteer')
+    list_display = ('student', 'evaluation', 'absent', 'excused')
 
 admin.site.register(Course, CourseAdmin)
 admin.site.register(COGS, COGSAdmin)

@@ -138,7 +138,7 @@ class EvaluationForm(forms.ModelForm):
     
     class Meta:
         model = Evaluation
-        fields = ('evaluatee', 'individual_score')
+        fields = ('evaluatee', 'individual_score', 'volunteer')
         
 
 #class AttendanceForm(forms.Form):
