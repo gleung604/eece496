@@ -89,7 +89,7 @@ class AttendanceForm(forms.ModelForm):
         super(AttendanceForm, self).__init__(*args, **kwargs)
         instance = getattr(self, 'instance', None)
         if instance:
-            self.fields['student'].widget.attrs['disabled']=True
+            self.fields['student'].queryset = Student.objects.filter(pk=instance.student.id)
 
     def clean_student(self):
         return self.instance.student
