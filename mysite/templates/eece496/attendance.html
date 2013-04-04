@@ -60,6 +60,6 @@
 	<input type="submit" value="Submit" />
 </form>
 {% if evaluation.next_evaluation %}
-<p>{{ evaluation.next_evaluation }}</p>
+<p><a href="/eece496/{{ evaluation.next_evaluation.session.id }}/{{ evaluation.next_evaluation.id }}">{{ evaluation.next_evaluation }}</a></p>
 {% endif %}
 {% endblock %}

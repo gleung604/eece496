@@ -49,7 +49,6 @@ class Evaluation(models.Model):
     start = models.DateTimeField('start time')
     end = models.DateTimeField('end time')
     ta = models.ForeignKey(TA)
-    has_next = models.BooleanField()
     next_evaluation = models.ForeignKey('self', null=True, blank=True)
     def __unicode__(self):
         return formats.date_format(self.start, "SHORT_DATETIME_FORMAT")
@@ -96,10 +95,18 @@ class EvaluationForm(forms.ModelForm):
     individual_score = forms.IntegerField(label='score', required=False)
 
     def __init__(self, *args, **kwargs):
+        evaluatee = kwargs.pop('evaluatee', None)
+        print evaluatee
         evaluation = kwargs.get('instance', {})
-        if evaluation.evaluatee != None:
+        if evaluation.evaluatee:
             initial = kwargs.get('initial', {})
+            initial['evaluatee'] = evaluation.evaluatee
             initial['individual_score'] = evaluation.evaluatee.individual_score
+            kwargs['initial'] = initial
+        elif evaluatee:
+            initial = kwargs.get('initial', {})
+            initial['evaluatee'] = evaluatee
+            initial['individual_score'] = evaluatee.individual_score
             kwargs['initial'] = initial
         super(EvaluationForm, self).__init__(*args, **kwargs)
         self.fields['evaluatee'].queryset = Attendance.objects.filter(evaluation_id=evaluation.id)

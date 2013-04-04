@@ -39,12 +39,15 @@ def attendance(request, session_id, evaluation_id):
         evaluation = TA.objects.get(pk=request.user.id).evaluation_set.get(pk=evaluation_id)
         AttendanceFormSet = inlineformset_factory(Evaluation, Attendance, can_delete=False,
                                                   extra=0, form=AttendanceForm)
+        evaluatee = None
+        if evaluation.evaluatee == None:
+            evaluatee = selectEvaluatee(attendances)
 
     except Attendance.DoesNotExist:
         return Http404
     
     if request.method == 'POST': # If the form has been submitted...
-        evaluation_form = EvaluationForm(request.POST, instance=evaluation)
+        evaluation_form = EvaluationForm(request.POST, instance=evaluation, evaluatee=evaluatee)
         print evaluation_form.errors
         group_form = GroupForm(request.POST)
         formset = AttendanceFormSet(request.POST, request.FILES, instance=evaluation) # A form bound to the POST data
@@ -66,7 +69,7 @@ def attendance(request, session_id, evaluation_id):
                 messages.success(request, 'Update successful.')
             return HttpResponseRedirect('') # Redirect after POST
     else:
-        evaluation_form = EvaluationForm(instance=evaluation)
+        evaluation_form = EvaluationForm(instance=evaluation, evaluatee=evaluatee)
         group_form = GroupForm()
         formset = AttendanceFormSet(instance=evaluation) # An unbound form
 
