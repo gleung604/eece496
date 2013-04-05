@@ -25,13 +25,14 @@ class Course(models.Model):
 
 class COGS(models.Model):
     name = models.CharField(max_length=5)
-    time = models.DateTimeField('session time')
+    date = models.CharField(max_length=50)
     course = models.ForeignKey(Course)
     def __unicode__(self):
         return self.name
 
 class Session(models.Model):
     cogs = models.ForeignKey(COGS)
+    time = models.CharField(max_length=50)
     room = models.CharField(max_length=50)
     def __unicode__(self):
         return 'Location: %s' % self.room

@@ -5,7 +5,9 @@ from django.http import HttpResponseRedirect, Http404
 from django.views.generic import ListView
 from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
-from eece496.models import EvaluationForm, GroupForm, Attendance, AttendanceForm, Evaluation, Session, TA
+from django.contrib.auth import models
+from eece496.models import User, EvaluationForm, GroupForm, Attendance, AttendanceForm, Evaluation, Session, TA
+import csv
 
 @login_required
 def sessions(request):
@@ -78,6 +80,35 @@ def attendance(request, session_id, evaluation_id):
         'group_form': group_form,
         'formset': formset,
         'evaluation': evaluation,
+    })
+
+def upload(request):
+    # Populate database with TAs
+    reader = csv.reader(open("C:/Users/Gary/dev/mysite/TA Duties.csv"))
+    g = models.Group.objects.get(name='TA')
+    for row in reader:
+        if row[0] != '':
+            username = str(row[1]).lower() + str(row[2]).lower()
+            ta, created = TA.objects.get_or_create(username=username, password='password',
+                                                   first_name=row[1], last_name=row[2])
+            ta.save()
+            g.user_set.add(ta)
+    reader = csv.reader(open("C:/Users/Gary/dev/mysite/E253.csv"))
+    # Populate database with Session, Student, Group data
+    start = False
+    time = ''
+    room = ''
+    for row in reader:
+        if "Time" in row:
+            start = True
+            continue
+        if start:
+            if row[0] != '':
+                time = row[0]
+            if row[1] != '':
+                room = row[1]
+                
+    return render(request, 'eece496/upload.html', {
     })
 
 def selectEvaluatee(attendances):

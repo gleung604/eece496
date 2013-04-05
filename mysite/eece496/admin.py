@@ -23,7 +23,7 @@ class EvaluationInline(admin.TabularInline):
 
 class COGSAdmin(admin.ModelAdmin):
     inlines = [SessionInline]
-    list_display = ('name', 'time')
+    list_display = ('name',)
 
 class GroupAdmin(admin.ModelAdmin):
     inlines = [StudentInline]
