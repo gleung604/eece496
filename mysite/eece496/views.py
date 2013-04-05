@@ -6,7 +6,7 @@ from django.views.generic import ListView
 from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import models
-from eece496.models import User, EvaluationForm, GroupForm, Attendance, AttendanceForm, Evaluation, Session, TA
+from eece496.models import COGS, Group, EvaluationForm, GroupForm, Attendance, AttendanceForm, Evaluation, Session, Student, TA
 import csv
 
 @login_required
@@ -83,22 +83,34 @@ def attendance(request, session_id, evaluation_id):
     })
 
 def upload(request):
-    # Populate database with TAs
+    # Populate database with COGS and TAs
     reader = csv.reader(open("C:/Users/Gary/dev/mysite/TA Duties.csv"))
     g = models.Group.objects.get(name='TA')
-    for row in reader:
+    ta_duties = []
+    for i, row in enumerate(reader):
+        ta_duties.append(row)
+        if i == 3:
+            for j, line in enumerate(ta_duties[0]):
+                print line[0:4]
+                if line[0:4] == "E253":
+                    cogs, created = COGS.objects.get_or_create(name=ta_duties[0][j][4:], date=ta_duties[1][j], course=None)
+                    cogs.save()
         if row[0] != '':
             username = str(row[1]).lower() + str(row[2]).lower()
             ta, created = TA.objects.get_or_create(username=username, password='password',
                                                    first_name=row[1], last_name=row[2])
             ta.save()
             g.user_set.add(ta)
-    reader = csv.reader(open("C:/Users/Gary/dev/mysite/E253.csv"))
     # Populate database with Session, Student, Group data
+    reader = csv.reader(open("C:/Users/Gary/dev/mysite/E253.csv"))
     start = False
     time = ''
     room = ''
+    group = None
+    cogs = COGS.objects.get(name='COGS1')
+    e253 = []
     for row in reader:
+        e253.append(row)
         if "Time" in row:
             start = True
             continue
@@ -107,6 +119,30 @@ def upload(request):
                 time = row[0]
             if row[1] != '':
                 room = row[1]
+                session, created = Session.objects.get_or_create(cogs=cogs, time=time, room=room)
+                session.save()
+            if row[2] != '':
+                group, created = Group.objects.get_or_create(group_code=row[2])
+                group.save()
+            if row[3] != '':
+                student, created = Student.objects.get_or_create(student_number=row[3], first_name=row[4],
+                                                                 last_name=row[5], group=group)
+                student.save()
+    # Link TA objects to sessions/evaluations
+    groups = {}
+    reader = csv.reader(open("C:/Users/Gary/dev/mysite/Room Sched.csv"))
+    start = False
+    time = None
+    session = None
+    ta = None
+    room_sched = []
+    for row in reader:
+        room_sched.append(row)
+        if "EECE 261 Times " in row:
+            break
+        if "A/C Intra-Session Time" in row:
+            start = True
+            continue
                 
     return render(request, 'eece496/upload.html', {
     })

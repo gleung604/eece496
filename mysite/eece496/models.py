@@ -26,16 +26,9 @@ class Course(models.Model):
 class COGS(models.Model):
     name = models.CharField(max_length=5)
     date = models.CharField(max_length=50)
-    course = models.ForeignKey(Course)
+    course = models.ForeignKey(Course, null=True, blank=True)
     def __unicode__(self):
         return self.name
-
-class Session(models.Model):
-    cogs = models.ForeignKey(COGS)
-    time = models.CharField(max_length=50)
-    room = models.CharField(max_length=50)
-    def __unicode__(self):
-        return 'Location: %s' % self.room
 
 class TA(User):
     class Meta:
@@ -44,13 +37,20 @@ class TA(User):
     def __unicode__(self):
         return self.first_name + ' ' + self.last_name
 
+class Session(models.Model):
+    cogs = models.ForeignKey(COGS)
+    time = models.CharField(max_length=50)
+    room = models.CharField(max_length=50)
+    def __unicode__(self):
+        return 'Location: %s' % self.room
+
 class Evaluation(models.Model):
     evaluatee = models.ForeignKey('Attendance', related_name="evaluatee_set", null=True, blank=True)
     volunteer = models.BooleanField(default=False)
-    student = models.ManyToManyField(Student, through='Attendance', related_name="evaluation_set")
+    student = models.ManyToManyField(Student, through='Attendance', related_name="evaluation_set",
+                                     null=True, blank=True)
     session = models.ForeignKey(Session)
-    start = models.DateTimeField('start time')
-    end = models.DateTimeField('end time')
+    time = models.CharField(max_length=50)
     ta = models.ForeignKey(TA)
     next_evaluation = models.ForeignKey('self', null=True, blank=True)
     def __unicode__(self):
