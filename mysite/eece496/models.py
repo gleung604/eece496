@@ -60,7 +60,8 @@ class Evaluation(models.Model):
     ta = models.ForeignKey(TA)
     next_evaluation = models.ForeignKey('self', null=True, blank=True)
     def __unicode__(self):
-        return formats.date_format(self.start, "SHORT_DATETIME_FORMAT")
+        #return formats.date_format(self.start, "SHORT_DATETIME_FORMAT")
+        return str(self.ta) + ' ' + str(self.session.room) + str(self.session.time)
 
 class Attendance(models.Model):
     student = models.ForeignKey(Student)

@@ -13,7 +13,7 @@ import csv
 @login_required
 def sessions(request):
     try:
-        evaluations = TA.objects.get(pk=request.user.id).evaluation_set
+        evaluations = TA.objects.get(user_id=request.user.id).evaluation_set.exclude(student=None)
         sessions = Session.objects.filter(evaluation__in=evaluations.all())
     except Evaluation.DoesNotExist:
         raise Http404
@@ -25,7 +25,8 @@ def sessions(request):
 @login_required
 def evaluations(request, session_id):
     try:
-        evaluations = Session.objects.get(pk=session_id).evaluation_set.filter(ta_id=request.user.id)
+        ta = TA.objects.get(user_id=request.user.id)
+        evaluations = Session.objects.get(pk=session_id).evaluation_set.filter(ta_id=ta.id)
         session = Session.objects.get(pk=session_id)
     except Evaluation.DoesNotExist:
         raise Http404
@@ -39,7 +40,7 @@ def evaluations(request, session_id):
 def attendance(request, session_id, evaluation_id):
     try:
         attendances = Attendance.objects.filter(evaluation_id=evaluation_id)
-        evaluation = TA.objects.get(pk=request.user.id).evaluation_set.get(pk=evaluation_id)
+        evaluation = TA.objects.get(user_id=request.user.id).evaluation_set.get(pk=evaluation_id)
         AttendanceFormSet = inlineformset_factory(Evaluation, Attendance, can_delete=False,
                                                   extra=0, form=AttendanceForm)
         evaluatee = None
@@ -99,8 +100,14 @@ def upload(request):
                     cogs.save()
         if row[0] != '':
             username = str(row[1]).lower() + str(row[2]).lower()
-            ta, created = TA.objects.get_or_create(user=User.objects.get_or_create(username=username, password='password',
-                                                   first_name=row[1], last_name=row[2])[0], number=row[0])
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                user = User.objects.create_user(username=username, password='password')
+                user.first_name = row[1]
+                user.last_name = row[2]
+                user.save()
+            ta, created = TA.objects.get_or_create(user=user, number=row[0])
             ta.save()
             g.user_set.add(ta.user)
         if i == 16:
@@ -131,6 +138,8 @@ def upload(request):
     start = False
     time = ''
     room = ''
+    evaluation = None
+    attendance = None
     group = None
     cogs = None
     e253 = []
@@ -140,48 +149,47 @@ def upload(request):
             start = True
             continue
         if start:
-            if row[0] != '':
-                time = row[0]
-            if row[1] != '':
-                room = row[1]
-                for cogs in COGS.objects.all():
-                    session, created = Session.objects.get_or_create(cogs=cogs, time=SessionTime.objects.get(time=time),
+            for cogs in COGS.objects.all():
+                if row[0] != '':
+                    time = row[0]
+                if row[1] != '':
+                    room = row[1]
+                session, created = Session.objects.get_or_create(cogs=cogs, time=SessionTime.objects.get(time=time),
                                                                      room=room)
-                    session.save()
-                    table = None
-                    if session.time.block in room_sched[2][0][0:3]:
-                        table = room_sched[2:10]
-                    elif session.time.block in room_sched[11][0][0:3]:
-                        table = room_sched[11:19]
-                    if table != None:
-                        for j, heading in enumerate(table[0]):
-                            # Get list of TAs for a session time
-                            if room[5:8] == heading[1:]:
-                                for i, ta_list in enumerate(table[2:]):
-                                    # Check TA assignment for that session
-                                    for k, temp in enumerate(ta_duties[0]):
-                                        if temp[4:] == cogs.name and temp[0:4] == cogs.course.course_code:
-                                            for l, ta_assignment in enumerate(ta_duties[3:15]):
-                                                if ta_assignment[k] == ta_list[j][2]:
-                                                    ta = ta_assignment[1]
-                                                    break
-                                            break
-                                break
-                                
-                                
-                    #for i, room_sched_row in enumerate(room_sched):
-                        #for j, room_sched_elem in enumerate(room_sched_row):
-                            #if room_sched_elem[0:4] == room[5:8]:
-                                #ta_id = ta_duties[cogs.name]
-                                #ta = TA.objects.get(pk=ta_id)
-                                #evaluation = Evaluation.objects.get_or_create(session=session, 
-            if row[2] != '':
-                group, created = Group.objects.get_or_create(group_code=row[2])
-                group.save()
-            if row[3] != '':
-                student, created = Student.objects.get_or_create(student_number=row[3], first_name=row[4],
+                session.save()
+                table = None
+                if session.time.block in room_sched[2][0][0:3]:
+                    table = room_sched[2:10]
+                elif session.time.block in room_sched[11][0][0:3]:
+                    table = room_sched[11:19]
+                if table != None:
+                    for j, heading in enumerate(table[0]):
+                        # Get list of TAs for a session time
+                        if room[5:8] == heading[1:]:
+                            for i, ta_list in enumerate(table[2:]):
+                                # Check TA assignment for that session
+                                for k, temp in enumerate(ta_duties[0]):
+                                    if temp[4:] == cogs.name and temp[0:4] == cogs.course.course_code:
+                                        for l, ta_assignment in enumerate(ta_duties[3:15]):
+                                            if ta_assignment[k] == ta_list[j][2]:
+                                                ta = TA.objects.get(number=ta_assignment[0])
+                                                break
+                                        break
+                                # Create an evaluation with the selected TA for this session
+                                evaluation, created = Evaluation.objects.get_or_create(session=session, time=ta_list[0],
+                                                                                  ta=ta)
+                                evaluation.save()
+                            break
+                if row[2] != '':
+                    group, created = Group.objects.get_or_create(group_code=row[2])
+                    group.save()
+                if row[3] != '':
+                    student, created = Student.objects.get_or_create(student_number=row[3], first_name=row[4],
                                                                  last_name=row[5], group=group)
-                student.save()
+                    student.save()
+                    for evaluation in session.evaluation_set.all():
+                        attendance, created = Attendance.objects.get_or_create(student=student, evaluation=evaluation)
+                        attendance.save()
                 
     return render(request, 'eece496/upload.html', {
     })

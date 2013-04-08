@@ -6,7 +6,7 @@
 {% block content %}
 {% if evaluation_list.all %}
     {% for evaluation in evaluation_list.all %}
-        <p><a href="/eece496/{{ session.id }}/{{ evaluation.id }}">{{ evaluation.start }}</a></p>
+        <p><a href="/eece496/{{ session.id }}/{{ evaluation.id }}">{{ evaluation.time }}</a></p>
 	{% endfor %}
 {% else %}
     <p>No evaluations in this session.</p>
