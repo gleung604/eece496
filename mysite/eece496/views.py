@@ -6,6 +6,7 @@ from django.views.generic import ListView
 from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import models
+from django.contrib.auth.models import User
 from eece496.models import SessionTime, Course, COGS, Group, EvaluationForm, GroupForm, Attendance, AttendanceForm, Evaluation, Session, Student, TA
 import csv
 
@@ -98,10 +99,10 @@ def upload(request):
                     cogs.save()
         if row[0] != '':
             username = str(row[1]).lower() + str(row[2]).lower()
-            ta, created = TA.objects.get_or_create(username=username, password='password',
-                                                   first_name=row[1], last_name=row[2])
+            ta, created = TA.objects.get_or_create(user=User.objects.get_or_create(username=username, password='password',
+                                                   first_name=row[1], last_name=row[2])[0], number=row[0])
             ta.save()
-            g.user_set.add(ta)
+            g.user_set.add(ta.user)
         if i == 16:
             times = ta_duties[i][1]
             #print times
@@ -163,8 +164,6 @@ def upload(request):
                                             for l, ta_assignment in enumerate(ta_duties[3:15]):
                                                 if ta_assignment[k] == ta_list[j][2]:
                                                     ta = ta_assignment[1]
-                                                    if "203" in room:
-                                                        print ta
                                                     break
                                             break
                                 break
