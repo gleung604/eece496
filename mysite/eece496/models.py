@@ -37,9 +37,15 @@ class TA(User):
     def __unicode__(self):
         return self.first_name + ' ' + self.last_name
 
+class SessionTime(models.Model):
+    block = models.CharField(max_length=1)
+    time = models.CharField(max_length=50)
+    def __unicode__(self):
+        return self.time
+
 class Session(models.Model):
     cogs = models.ForeignKey(COGS)
-    time = models.CharField(max_length=50)
+    time = models.ForeignKey(SessionTime)
     room = models.CharField(max_length=50)
     def __unicode__(self):
         return 'Location: %s' % self.room

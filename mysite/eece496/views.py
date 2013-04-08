@@ -6,7 +6,7 @@ from django.views.generic import ListView
 from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import models
-from eece496.models import COGS, Group, EvaluationForm, GroupForm, Attendance, AttendanceForm, Evaluation, Session, Student, TA
+from eece496.models import SessionTime, Course, COGS, Group, EvaluationForm, GroupForm, Attendance, AttendanceForm, Evaluation, Session, Student, TA
 import csv
 
 @login_required
@@ -50,7 +50,7 @@ def attendance(request, session_id, evaluation_id):
     
     if request.method == 'POST': # If the form has been submitted...
         evaluation_form = EvaluationForm(request.POST, instance=evaluation, evaluatee=evaluatee)
-        print evaluation_form.errors
+        #print evaluation_form.errors
         group_form = GroupForm(request.POST)
         formset = AttendanceFormSet(request.POST, request.FILES, instance=evaluation) # A form bound to the POST data
         if formset.is_valid(): # All validation rules pass
@@ -89,11 +89,12 @@ def upload(request):
     ta_duties = []
     for i, row in enumerate(reader):
         ta_duties.append(row)
-        if i == 3:
+        if i == 1:
             for j, line in enumerate(ta_duties[0]):
-                print line[0:4]
+                #print line[0:4]
                 if line[0:4] == "E253":
-                    cogs, created = COGS.objects.get_or_create(name=ta_duties[0][j][4:], date=ta_duties[1][j], course=None)
+                    cogs, created = COGS.objects.get_or_create(name=ta_duties[0][j][4:], date=ta_duties[1][j],
+                                                               course=Course.objects.get(course_code=ta_duties[0][j][0:4]))
                     cogs.save()
         if row[0] != '':
             username = str(row[1]).lower() + str(row[2]).lower()
@@ -101,13 +102,36 @@ def upload(request):
                                                    first_name=row[1], last_name=row[2])
             ta.save()
             g.user_set.add(ta)
+        if i == 16:
+            times = ta_duties[i][1]
+            #print times
+            times = times.split(": ")
+            #print times
+            times = times[2].split(", ")
+            #print times
+            for t in times:
+                session_time, created = SessionTime.objects.get_or_create(block=t[0], time=t[2:])
+                session_time.save()
+        
+    # Link TA objects to sessions/evaluations
+    groups = {}
+    reader = csv.reader(open("C:/Users/Gary/dev/mysite/Room Sched.csv"))
+    start = False
+    time = None
+    session = None
+    ta = None
+    room_sched = []
+    for i, row in enumerate(reader):
+        room_sched.append(row)
+        if "EECE 261 Times " in row:
+            break
     # Populate database with Session, Student, Group data
     reader = csv.reader(open("C:/Users/Gary/dev/mysite/E253.csv"))
     start = False
     time = ''
     room = ''
     group = None
-    cogs = COGS.objects.get(name='COGS1')
+    cogs = None
     e253 = []
     for row in reader:
         e253.append(row)
@@ -119,8 +143,39 @@ def upload(request):
                 time = row[0]
             if row[1] != '':
                 room = row[1]
-                session, created = Session.objects.get_or_create(cogs=cogs, time=time, room=room)
-                session.save()
+                for cogs in COGS.objects.all():
+                    session, created = Session.objects.get_or_create(cogs=cogs, time=SessionTime.objects.get(time=time),
+                                                                     room=room)
+                    session.save()
+                    table = None
+                    if session.time.block in room_sched[2][0][0:3]:
+                        table = room_sched[2:10]
+                    elif session.time.block in room_sched[11][0][0:3]:
+                        table = room_sched[11:19]
+                    if table != None:
+                        for j, heading in enumerate(table[0]):
+                            # Get list of TAs for a session time
+                            if room[5:8] == heading[1:]:
+                                for i, ta_list in enumerate(table[2:]):
+                                    # Check TA assignment for that session
+                                    for k, temp in enumerate(ta_duties[0]):
+                                        if temp[4:] == cogs.name and temp[0:4] == cogs.course.course_code:
+                                            for l, ta_assignment in enumerate(ta_duties[3:15]):
+                                                if ta_assignment[k] == ta_list[j][2]:
+                                                    ta = ta_assignment[1]
+                                                    if "203" in room:
+                                                        print ta
+                                                    break
+                                            break
+                                break
+                                
+                                
+                    #for i, room_sched_row in enumerate(room_sched):
+                        #for j, room_sched_elem in enumerate(room_sched_row):
+                            #if room_sched_elem[0:4] == room[5:8]:
+                                #ta_id = ta_duties[cogs.name]
+                                #ta = TA.objects.get(pk=ta_id)
+                                #evaluation = Evaluation.objects.get_or_create(session=session, 
             if row[2] != '':
                 group, created = Group.objects.get_or_create(group_code=row[2])
                 group.save()
@@ -128,21 +183,6 @@ def upload(request):
                 student, created = Student.objects.get_or_create(student_number=row[3], first_name=row[4],
                                                                  last_name=row[5], group=group)
                 student.save()
-    # Link TA objects to sessions/evaluations
-    groups = {}
-    reader = csv.reader(open("C:/Users/Gary/dev/mysite/Room Sched.csv"))
-    start = False
-    time = None
-    session = None
-    ta = None
-    room_sched = []
-    for row in reader:
-        room_sched.append(row)
-        if "EECE 261 Times " in row:
-            break
-        if "A/C Intra-Session Time" in row:
-            start = True
-            continue
                 
     return render(request, 'eece496/upload.html', {
     })
