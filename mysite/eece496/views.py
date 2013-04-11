@@ -99,7 +99,7 @@ def upload(request):
                 #print line[0:4]
                 if line[0:4] == "E253":
                     date = datetime.strptime(ta_duties[1][j], "%b-%d")
-                    date.replace(year=date.today().year)
+                    date = date.replace(year=dt.today().year)
                     cogs, created = COGS.objects.get_or_create(name=ta_duties[0][j][4:], date=date,
                                                                course=Course.objects.get(course_code=ta_duties[0][j][0:4]))
                     cogs.save()
