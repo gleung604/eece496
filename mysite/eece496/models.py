@@ -25,7 +25,7 @@ class Course(models.Model):
 
 class COGS(models.Model):
     name = models.CharField(max_length=5)
-    date = models.CharField(max_length=50)
+    date = models.DateField()
     course = models.ForeignKey(Course, null=True, blank=True)
     def __unicode__(self):
         return self.name
@@ -39,13 +39,14 @@ class TA(models.Model):
 
 class SessionTime(models.Model):
     block = models.CharField(max_length=1)
-    time = models.CharField(max_length=50)
+    start = models.TimeField()
+    end = models.TimeField()
     def __unicode__(self):
         return self.time
 
 class Session(models.Model):
     cogs = models.ForeignKey(COGS)
-    time = models.ForeignKey(SessionTime)
+    block = models.ForeignKey(SessionTime)
     room = models.CharField(max_length=50)
     def __unicode__(self):
         return 'Location: %s' % self.room
@@ -56,7 +57,8 @@ class Evaluation(models.Model):
     student = models.ManyToManyField(Student, through='Attendance', related_name="evaluation_set",
                                      null=True, blank=True)
     session = models.ForeignKey(Session)
-    time = models.CharField(max_length=50)
+    start = models.TimeField()
+    end = models.TimeField()
     ta = models.ForeignKey(TA)
     next_evaluation = models.ForeignKey('self', null=True, blank=True)
     def __unicode__(self):

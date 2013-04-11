@@ -7,6 +7,7 @@ from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import models
 from django.contrib.auth.models import User
+from datetime import datetime, date
 from eece496.models import SessionTime, Course, COGS, Group, EvaluationForm, GroupForm, Attendance, AttendanceForm, Evaluation, Session, Student, TA
 import csv
 
@@ -95,7 +96,9 @@ def upload(request):
             for j, line in enumerate(ta_duties[0]):
                 #print line[0:4]
                 if line[0:4] == "E253":
-                    cogs, created = COGS.objects.get_or_create(name=ta_duties[0][j][4:], date=ta_duties[1][j],
+                    date = datetime.strptime(ta_duties[1][j], "%b-%d")
+                    date.replace(year=date.today().year)
+                    cogs, created = COGS.objects.get_or_create(name=ta_duties[0][j][4:], date=date,
                                                                course=Course.objects.get(course_code=ta_duties[0][j][0:4]))
                     cogs.save()
         if row[0] != '':
