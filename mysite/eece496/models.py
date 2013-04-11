@@ -73,7 +73,7 @@ class Attendance(models.Model):
     absent = models.BooleanField(default=False)
     excused = models.BooleanField(default=False)
     def __unicode__(self):
-        return str(self.individual_score)
+        return str(self.student)
     
 class AttendanceForm(forms.ModelForm):
 #    absent = forms.BooleanField()
