@@ -182,10 +182,12 @@ def upload(request):
                                 for k, temp in enumerate(ta_duties[0]):
                                     # If matches current cogs
                                     if temp[4:] == cogs.name and temp[0:4] == cogs.course.course_code:
-                                        for l, ta_assignment in enumerate(ta_duties[3:15]):
-                                            if ta_assignment[k] == ta_list[j][2]:
-                                                print ta_list[j]
-                                                ta = TA.objects.get(number=ta_assignment[0])
+                                        for m, session_block in enumerate(ta_duties[2][k:k+4]):
+                                            if session_block == session.block.block:
+                                                for l, ta_assignment in enumerate(ta_duties[3:15]):
+                                                    if ta_assignment[k+m] == ta_list[j][2]:
+                                                        ta = TA.objects.get(number=ta_assignment[0])
+                                                        break
                                                 break
                                         break
                                 # Create an evaluation with the selected TA for this session
