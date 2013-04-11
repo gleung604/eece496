@@ -42,14 +42,14 @@ class SessionTime(models.Model):
     start = models.TimeField()
     end = models.TimeField()
     def __unicode__(self):
-        return self.time
+        return self.block
 
 class Session(models.Model):
     cogs = models.ForeignKey(COGS)
     block = models.ForeignKey(SessionTime)
     room = models.CharField(max_length=50)
     def __unicode__(self):
-        return 'Location: %s' % self.room
+        return self.room
 
 class Evaluation(models.Model):
     evaluatee = models.ForeignKey('Attendance', related_name="evaluatee_set", null=True, blank=True)
@@ -63,7 +63,7 @@ class Evaluation(models.Model):
     next_evaluation = models.ForeignKey('self', null=True, blank=True)
     def __unicode__(self):
         #return formats.date_format(self.start, "SHORT_DATETIME_FORMAT")
-        return str(self.ta) + ' ' + str(self.session.room) + str(self.session.time)
+        return str(self.start)
 
 class Attendance(models.Model):
     student = models.ForeignKey(Student)
@@ -73,7 +73,7 @@ class Attendance(models.Model):
     absent = models.BooleanField(default=False)
     excused = models.BooleanField(default=False)
     def __unicode__(self):
-        return str(self.student)
+        return str(self.individual_score)
     
 class AttendanceForm(forms.ModelForm):
 #    absent = forms.BooleanField()

@@ -7,7 +7,9 @@ from django.forms.models import inlineformset_factory
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import models
 from django.contrib.auth.models import User
-from datetime import datetime, date
+from datetime import datetime, timedelta
+from datetime import date as dt
+from datetime import time as tm
 from eece496.models import SessionTime, Course, COGS, Group, EvaluationForm, GroupForm, Attendance, AttendanceForm, Evaluation, Session, Student, TA
 import csv
 
@@ -121,7 +123,14 @@ def upload(request):
             times = times[2].split(", ")
             #print times
             for t in times:
-                session_time, created = SessionTime.objects.get_or_create(block=t[0], time=t[2:])
+                time = t.split("=")
+                #print time
+                start, end = time[1].split("-")
+                start = datetime.strptime(start, "%I%p").time()
+                end = datetime.strptime(end, "%I%p").time()
+                #print start, end
+                session_time, created = SessionTime.objects.get_or_create(block=time[0], start=start,
+                                                                          end=end)
                 session_time.save()
         
     # Link TA objects to sessions/evaluations
@@ -138,7 +147,6 @@ def upload(request):
             break
     # Populate database with Session, Student, Group data
     reader = csv.reader(open("C:/Users/Gary/dev/mysite/E253.csv"))
-    start = False
     time = ''
     room = ''
     evaluation = None
@@ -146,24 +154,24 @@ def upload(request):
     group = None
     cogs = None
     e253 = []
-    for row in reader:
+    for z, row in enumerate(reader):
         e253.append(row)
-        if "Time" in row:
-            start = True
-            continue
-        if start:
+        if z > 2:
             for cogs in COGS.objects.all():
                 if row[0] != '':
                     time = row[0]
+                    start, end = time.split("-")
+                    start = datetime.strptime(start, "%I%p").time()
+                    end = datetime.strptime(end, "%I%p").time()
                 if row[1] != '':
                     room = row[1]
-                session, created = Session.objects.get_or_create(cogs=cogs, time=SessionTime.objects.get(time=time),
-                                                                     room=room)
+                session, created = Session.objects.get_or_create(cogs=cogs, room=room,
+                                                                 block=SessionTime.objects.get(start=start, end=end))
                 session.save()
                 table = None
-                if session.time.block in room_sched[2][0][0:3]:
+                if session.block.block in room_sched[2][0][0:3]:
                     table = room_sched[2:10]
-                elif session.time.block in room_sched[11][0][0:3]:
+                elif session.block.block in room_sched[11][0][0:3]:
                     table = room_sched[11:19]
                 if table != None:
                     for j, heading in enumerate(table[0]):
@@ -172,15 +180,25 @@ def upload(request):
                             for i, ta_list in enumerate(table[2:]):
                                 # Check TA assignment for that session
                                 for k, temp in enumerate(ta_duties[0]):
+                                    # If matches current cogs
                                     if temp[4:] == cogs.name and temp[0:4] == cogs.course.course_code:
                                         for l, ta_assignment in enumerate(ta_duties[3:15]):
                                             if ta_assignment[k] == ta_list[j][2]:
+                                                print ta_list[j]
                                                 ta = TA.objects.get(number=ta_assignment[0])
                                                 break
                                         break
                                 # Create an evaluation with the selected TA for this session
-                                evaluation, created = Evaluation.objects.get_or_create(session=session, time=ta_list[0],
-                                                                                  ta=ta)
+                                #print ta_list[0]
+                                eval_start, eval_end = ta_list[0].split("-")
+                                start_hours, start_mins = eval_start.split(":")
+                                end_hours, end_mins = eval_end.split(":")
+                                eval_start = (datetime.combine(dt.today(), tm(session.block.start.hour, session.block.start.minute))
+                                         + timedelta(hours=int(start_hours), minutes=int(start_mins))).time()
+                                eval_end = (datetime.combine(dt.today(), tm(session.block.start.hour, session.block.start.minute))
+                                         + timedelta(hours=int(end_hours), minutes=int(end_mins))).time()
+                                evaluation, created = Evaluation.objects.get_or_create(session=session, ta=ta,
+                                                                                       start=eval_start, end=eval_end)
                                 evaluation.save()
                             break
                 if row[2] != '':
