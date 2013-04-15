@@ -52,7 +52,7 @@ class Session(models.Model):
         return self.room
 
 class Evaluation(models.Model):
-    evaluatee = models.ForeignKey('Attendance', related_name="evaluatee_set", null=True, blank=True)
+    evaluatee = models.ForeignKey(Student, related_name="evaluatee_set", null=True, blank=True)
     volunteer = models.BooleanField(default=False)
     student = models.ManyToManyField(Student, through='Attendance', related_name="evaluation_set",
                                      null=True, blank=True)
@@ -118,27 +118,33 @@ class GroupForm(forms.Form):
 
 class EvaluationForm(forms.ModelForm):
     individual_score = forms.IntegerField(label='score', required=False)
+    evaluation = models.ForeignKey(Evaluation)
 
     def __init__(self, *args, **kwargs):
-        evaluatee = kwargs.pop('evaluatee', None)
-        print evaluatee
+        attendance = kwargs.pop('attendance', None)
         evaluation = kwargs.get('instance', {})
         if evaluation.evaluatee:
             initial = kwargs.get('initial', {})
             initial['evaluatee'] = evaluation.evaluatee
-            initial['individual_score'] = evaluation.evaluatee.individual_score
+            initial['individual_score'] = Attendance.objects.get(student_id=evaluation.evaluatee.id, evaluation_id=evaluation.id).individual_score
             kwargs['initial'] = initial
-        elif evaluatee:
+        elif attendance:
             initial = kwargs.get('initial', {})
-            initial['evaluatee'] = evaluatee
-            initial['individual_score'] = evaluatee.individual_score
+            initial['evaluatee'] = attendance.student
+            initial['individual_score'] = attendance.individual_score
             kwargs['initial'] = initial
         super(EvaluationForm, self).__init__(*args, **kwargs)
-        self.fields['evaluatee'].queryset = Attendance.objects.filter(evaluation_id=evaluation.id)
+        attendances = Attendance.objects.filter(evaluation_id=evaluation.id)
+        student_ids = []
+        for attendance in attendances:
+            student_ids.append(attendance.student.id)
+        self.fields['evaluatee'].queryset = Student.objects.filter(id__in=student_ids)
+        print self.fields['evaluatee'].queryset
 
     def save(self, commit=True):
         instance = super(EvaluationForm, self).save(commit=False)
-        attendance = Attendance.objects.get(pk=instance.evaluatee.id)
+        evaluatee = Student.objects.get(pk=instance.evaluatee.id)
+        attendance = Attendance.objects.get(student_id=evaluatee.id, evaluation_id=instance.id)
         attendance.individual_score = self.cleaned_data.get('individual_score')
         attendance.save()
         if commit:

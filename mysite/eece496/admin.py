@@ -62,6 +62,8 @@ class StudentAdmin(admin.ModelAdmin):
     list_display_links = ('first_name', 'last_name')
 
 class AttendanceAdmin(admin.ModelAdmin):
+    search_fields = ['student__first_name', 'student__last_name']
+    list_filter = ('evaluation__start', 'absent', 'excused')
     list_display = ('student', 'evaluation', 'absent', 'excused')
 
 class TAAdmin(admin.ModelAdmin):

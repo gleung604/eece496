@@ -46,15 +46,15 @@ def attendance(request, session_id, evaluation_id):
         evaluation = TA.objects.get(user_id=request.user.id).evaluation_set.get(pk=evaluation_id)
         AttendanceFormSet = inlineformset_factory(Evaluation, Attendance, can_delete=False,
                                                   extra=0, form=AttendanceForm)
-        evaluatee = None
+        attendance = None
         if evaluation.evaluatee == None:
-            evaluatee = selectEvaluatee(attendances)
+            attendance = selectEvaluatee(attendances)
 
     except Attendance.DoesNotExist:
         return Http404
     
     if request.method == 'POST': # If the form has been submitted...
-        evaluation_form = EvaluationForm(request.POST, instance=evaluation, evaluatee=evaluatee)
+        evaluation_form = EvaluationForm(request.POST, instance=evaluation, attendance=attendance)
         #print evaluation_form.errors
         group_form = GroupForm(request.POST)
         formset = AttendanceFormSet(request.POST, request.FILES, instance=evaluation) # A form bound to the POST data
@@ -76,7 +76,7 @@ def attendance(request, session_id, evaluation_id):
                 messages.success(request, 'Update successful.')
             return HttpResponseRedirect('') # Redirect after POST
     else:
-        evaluation_form = EvaluationForm(instance=evaluation, evaluatee=evaluatee)
+        evaluation_form = EvaluationForm(instance=evaluation, attendance=attendance)
         group_form = GroupForm()
         formset = AttendanceFormSet(instance=evaluation) # An unbound form
 
@@ -207,8 +207,8 @@ def upload(request):
                     group, created = Group.objects.get_or_create(group_code=row[2])
                     group.save()
                 if row[3] != '':
-                    student, created = Student.objects.get_or_create(student_number=row[3], first_name=row[4],
-                                                                 last_name=row[5], group=group)
+                    student, created = Student.objects.get_or_create(student_number=row[3], first_name=row[5],
+                                                                 last_name=row[4], group=group)
                     student.save()
                     for evaluation in session.evaluation_set.all():
                         attendance, created = Attendance.objects.get_or_create(student=student, evaluation=evaluation)
