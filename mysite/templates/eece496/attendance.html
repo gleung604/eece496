@@ -11,6 +11,11 @@
     {% endfor %}
 </ul>
 {% endif %}
+<p>
+Room: {{ evaluation.session.room }} <br>
+Date: {{ evaluation.session.cogs.date }} <br>
+Time: {{ evaluation.start }} to {{ evaluation.end }}
+</p>
 <form method="post" action="">{% csrf_token %}
 <table>
 <tr>

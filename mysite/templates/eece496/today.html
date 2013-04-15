@@ -4,13 +4,15 @@
 {% block title %}COGS{% endblock %}
 
 {% block content %}
-<h1>COGS</h1>
+<h1>Today's Sessions</h1>
 
 {% if cogs_list %}
-{% if session_list %}
+{% if evaluation_list %}
 {% for cogs in cogs_list %}
-    {% for session in session_list %}
-        <p><a href="/eece496/{{ cogs.id }}/{{ session.id }}/">{{ session.room}} {{ session.block.start }} to {{ session.block.end }}</a></p>
+    {% for evaluation in evaluation_list %}
+        <p><a href="/eece496/{{ cogs.id }}/{{ evaluation.session.id }}/{{ evaluation.id }}">
+		{{ evaluation.session.room}} {{ evaluation.start }} to {{ evaluation.end }}
+		</a></p>
     {% endfor %}
 {% endfor %}
 {% else %}

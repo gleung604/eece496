@@ -4,6 +4,8 @@
 {% block title %}Evaluations{% endblock %}
 
 {% block content %}
+<h1>Evaluations</h1>
+
 {% if evaluation_list.all %}
     {% for evaluation in evaluation_list.all %}
         <p><a href="/eece496/{{ cogs_id}}/{{ session.id }}/{{ evaluation.id }}">{{ evaluation.start }} to {{ evaluation.end }}</a></p>

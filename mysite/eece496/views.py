@@ -18,10 +18,12 @@ def today(request):
     cogs = COGS.objects.filter(date=dt(2013, 1, 11))
     evaluations = TA.objects.get(user_id=request.user.id).evaluation_set.exclude(student=None)
     sessions = Session.objects.filter(evaluation__in=evaluations.all(), cogs__in=cogs, block__end__gte=tm(8))
+    evaluations = Evaluation.objects.filter(session__in=sessions, ta__user_id=request.user.id).order_by('start')
     
     return render(request, 'eece496/today.html', {
         'cogs_list': cogs,
         'session_list': sessions,
+        'evaluation_list': evaluations
     })
 
 @login_required
@@ -76,7 +78,6 @@ def attendance(request, cogs_id, session_id, evaluation_id):
     
     if request.method == 'POST': # If the form has been submitted...
         evaluation_form = EvaluationForm(request.POST, instance=evaluation, attendance=attendance)
-        #print evaluation_form.errors
         group_form = GroupForm(request.POST)
         formset = AttendanceFormSet(request.POST, request.FILES, instance=evaluation) # A form bound to the POST data
         if formset.is_valid(): # All validation rules pass

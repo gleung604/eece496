@@ -7,6 +7,12 @@
         </title>
         </head>
     <body>
+		<div id="header">
+			{% if user.is_authenticated %}
+			Welcome, {{ user.first_name }}.<br>
+			<a href="/password_change">Change Password</a> / <a href="/accounts/logout/">Logout</a>
+			{% endif %}
+		</div>
         <div class="content">
             {% block content %}
             {% endblock %}
