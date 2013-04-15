@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}COGS{% endblock %}
+
+{% block content %}
+<h1>COGS</h1>
+
+{% if cogs_list %}
+    {% for cogs in cogs_list %}
+        <p><a href="/eece496/{{ cogs.id }}/">{{ cogs.name }} {{ cogs.date }}</a></p>
+    {% endfor %}
+{% else %}
+    <p>No COGS are available.</p>
+{% endif %}
+{% endblock %}

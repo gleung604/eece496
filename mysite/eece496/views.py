@@ -14,19 +14,39 @@ from eece496.models import SessionTime, Course, COGS, Group, EvaluationForm, Gro
 import csv
 
 @login_required
-def sessions(request):
+def today(request):
+    cogs = COGS.objects.filter(date=dt(2013, 1, 11))
+    evaluations = TA.objects.get(user_id=request.user.id).evaluation_set.exclude(student=None)
+    sessions = Session.objects.filter(evaluation__in=evaluations.all(), cogs__in=cogs, block__end__gte=tm(8))
+    
+    return render(request, 'eece496/today.html', {
+        'cogs_list': cogs,
+        'session_list': sessions,
+    })
+
+@login_required
+def cogs(request):
+    cogs = COGS.objects.filter(date__lte=dt(2013, 2, 11))
+
+    return render(request, 'eece496/cogs.html', {
+        'cogs_list': cogs,
+    })
+
+@login_required
+def sessions(request, cogs_id):
     try:
         evaluations = TA.objects.get(user_id=request.user.id).evaluation_set.exclude(student=None)
-        sessions = Session.objects.filter(evaluation__in=evaluations.all())
+        sessions = Session.objects.filter(evaluation__in=evaluations.all(), cogs_id=cogs_id)
     except Evaluation.DoesNotExist:
         raise Http404
 
     return render(request, 'eece496/session.html', {
         'session_list': sessions,
+        'cogs_id': cogs_id,
     })
 
 @login_required
-def evaluations(request, session_id):
+def evaluations(request, cogs_id, session_id):
     try:
         ta = TA.objects.get(user_id=request.user.id)
         evaluations = Session.objects.get(pk=session_id).evaluation_set.filter(ta_id=ta.id)
@@ -37,10 +57,11 @@ def evaluations(request, session_id):
     return render(request, 'eece496/evaluation.html', {
         'evaluation_list': evaluations,
         'session': session,
+        'cogs_id': cogs_id,
     })
 
 @login_required
-def attendance(request, session_id, evaluation_id):
+def attendance(request, cogs_id, session_id, evaluation_id):
     try:
         attendances = Attendance.objects.filter(evaluation_id=evaluation_id)
         evaluation = TA.objects.get(user_id=request.user.id).evaluation_set.get(pk=evaluation_id)

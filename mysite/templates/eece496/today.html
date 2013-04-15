@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}COGS{% endblock %}
+
+{% block content %}
+<h1>COGS</h1>
+
+{% if cogs_list %}
+{% if session_list %}
+{% for cogs in cogs_list %}
+    {% for session in session_list %}
+        <p><a href="/eece496/{{ cogs.id }}/{{ session.id }}/">{{ session.room}} {{ session.block.start }} to {{ session.block.end }}</a></p>
+    {% endfor %}
+{% endfor %}
+{% else %}
+	<p>No sessions remaining for today</p>
+{% endif %}
+{% else %}
+    <p>No COGS today.</p>
+{% endif %}
+{% endblock %}
