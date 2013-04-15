@@ -23,12 +23,12 @@ Time: {{ evaluation.start }} to {{ evaluation.end }}
     <td>{{ evaluation_form.evaluatee }}</td>
 </tr>
 <tr>
-	<td>{{ evaluation_form.individual_score.label|capfirst }}</td>
-    <td>{{ evaluation_form.individual_score }}</td>
-</tr>
-<tr>
 	<td>{{ evaluation_form.volunteer.label|capfirst }}</td>
     <td>{{ evaluation_form.volunteer }}</td>
+</tr>
+<tr>
+	<td>{{ evaluation_form.individual_score.label|capfirst }}</td>
+    <td>{{ evaluation_form.individual_score }}</td>
 </tr>
 </table>
 <br>
@@ -68,7 +68,9 @@ Time: {{ evaluation.start }} to {{ evaluation.end }}
 </table>
 	<input type="submit" value="Submit" />
 </form>
-{% if evaluation.next_evaluation %}
-<p><a href="/eece496/{{ evaluation.next_evaluation.session.id }}/{{ evaluation.next_evaluation.id }}">{{ evaluation.next_evaluation }}</a></p>
+{% if next_evaluation %}
+<p><a href="/eece496/{{ next_evaluation.session.cogs.id }}/{{ next_evaluation.session.id }}/{{ next_evaluation.id }}">
+{{ next_evaluation.session.room }} {{ next_evaluation.start }} to {{ next_evaluation.end }}
+</a></p>
 {% endif %}
 {% endblock %}

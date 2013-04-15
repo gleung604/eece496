@@ -66,6 +66,7 @@ class Session(models.Model):
 class Evaluation(models.Model):
     """A model to represent a specific evaluation within a session"""
     evaluatee = models.ForeignKey(Student, related_name="evaluatee_set", null=True, blank=True)
+    volunteer = models.ForeignKey(Student, related_name="volunteer_set", null=True, blank=True)
     student = models.ManyToManyField(Student, through='Attendance', related_name="evaluation_set",
                                      null=True, blank=True)
     session = models.ForeignKey(Session)

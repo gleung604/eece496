@@ -26,7 +26,6 @@ class GroupForm(forms.Form):
 class EvaluationForm(forms.ModelForm):
     "Form to input individual score for an evaluatee or volunteer"
     individual_score = forms.IntegerField(label='score', required=False)
-    volunteer = forms.BooleanField(initial=False, required=False)
     evaluation = models.ForeignKey(Evaluation)
 
     def __init__(self, *args, **kwargs):
@@ -39,7 +38,13 @@ class EvaluationForm(forms.ModelForm):
             initial = kwargs.get('initial', {})
             initial['evaluatee'] = evaluation.evaluatee
             initial['individual_score'] = Attendance.objects.get(student_id=evaluation.evaluatee.id, evaluation_id=evaluation.id).individual_score
-            initial['volunteer'] = Attendance.objects.get(student_id=evaluation.evaluatee.id, evaluation_id=evaluation.id).volunteer
+            initial['volunteer'] = None
+            kwargs['initial'] = initial
+        elif evaluation.volunteer:
+            initial = kwargs.get('initial', {})
+            initial['volunteer'] = evaluation.volunteer
+            initial['individual_score'] = Attendance.objects.get(student_id=evaluation.volunteer.id, evaluation_id=evaluation.id).individual_score
+            initial['evaluatee'] = None
             kwargs['initial'] = initial
         elif attendance:
             initial = kwargs.get('initial', {})
@@ -48,25 +53,47 @@ class EvaluationForm(forms.ModelForm):
             kwargs['initial'] = initial
         super(EvaluationForm, self).__init__(*args, **kwargs)
         # Set the queryset to the students assigned to this evaluation
+        if evaluation.evaluatee:
+            self.fields['evaluatee'].queryset = Student.objects.filter(pk=evaluation.evaluatee.id)
+        elif attendance:
+            self.fields['evaluatee'].queryset = Student.objects.filter(pk=attendance.student.id)
         attendances = Attendance.objects.filter(evaluation_id=evaluation.id)
         student_ids = []
         for attendance in attendances:
             student_ids.append(attendance.student.id)
-        self.fields['evaluatee'].queryset = Student.objects.filter(id__in=student_ids)
-        print self.fields['evaluatee'].queryset
+        self.fields['volunteer'].queryset = Student.objects.filter(id__in=student_ids)
 
     def save(self, commit=True):
         instance = super(EvaluationForm, self).save(commit=False)
+        old_attendance = None
+        new_attendance = None
+        # If there exists a prior entry, delete the entry
+        evaluation = Evaluation.objects.get(pk=instance.id)
+        # Prioritize volunteer selection over evaluatee
+        if evaluation.volunteer != None or evaluation.evaluatee != None:
+            if evaluation.volunteer != None:
+                student = Student.objects.get(pk=evaluation.volunteer.id)
+            elif evaluation.evaluatee != None:
+                student = Student.objects.get(pk=evaluation.evaluatee.id)
+            old_attendance = Attendance.objects.get(student_id=student.id, evaluation_id=instance.id)
+            old_attendance.individual_score = None
         # Get the attendance associated with the evaluatee to save the score
-        evaluatee = Student.objects.get(pk=instance.evaluatee.id)
-        attendance = Attendance.objects.get(student_id=evaluatee.id, evaluation_id=instance.id)
-        attendance.individual_score = self.cleaned_data.get('individual_score')
-        attendance.volunteer = self.cleaned_data.get('volunteer')
-        attendance.save()
+        if instance.volunteer != None or instance.evaluatee != None:
+            if instance.volunteer != None:
+                student = Student.objects.get(pk=instance.volunteer.id)
+                instance.evaluatee = None
+            elif instance.evaluatee != None:
+                student = Student.objects.get(pk=instance.evaluatee.id)
+            new_attendance = Attendance.objects.get(student_id=student.id, evaluation_id=instance.id)
+            new_attendance.individual_score = self.cleaned_data.get('individual_score')
         if commit:
+            if old_attendance != None:
+                old_attendance.save()
+            if instance.evaluatee != None or instance.volunteer != None:
+                new_attendance.save()
             instance.save()
         return instance
     
     class Meta:
         model = Evaluation
-        fields = ('evaluatee', 'individual_score', 'volunteer')
+        fields = ('evaluatee', 'volunteer', 'individual_score')

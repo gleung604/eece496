@@ -100,19 +100,42 @@ def attendance(request, cogs_id, session_id, evaluation_id):
                     attendance.group_score = group_score
                 attendance.save()
             if evaluation_form.is_valid():
-                evaluation_form.save()
-                messages.success(request, 'Update successful.')
+                evaluation = evaluation_form.save(commit=False)
+                if evaluation.volunteer != None:
+                    if attendances.get(student_id=evaluation.volunteer.id).absent == True:
+                        messages.error(request, 'Student is absent. Please choose another volunteer.')
+                    else:
+                        evaluation_form.save()
+                        messages.success(request, 'Update successful.')
+                elif evaluation.evaluatee != None:
+                    if attendances.get(student_id=evaluation.evaluatee.id).absent == True:
+                        messages.error(request, 'Student is absent. Please choose a volunteer.')
+                    else:
+                        evaluation_form.save()
+                        messages.success(request, 'Update successful.')
+                else:
+                    evaluation_form.save()
+                    messages.success(request, 'Update successful.')
             return HttpResponseRedirect('') # Redirect after POST
     else:
         evaluation_form = EvaluationForm(instance=evaluation, attendance=attendance)
         group_form = GroupForm()
         formset = AttendanceFormSet(instance=evaluation) # An unbound form
 
+    session = Session.objects.get(pk=session_id)
+    evaluations = Evaluation.objects.filter(session__cogs_id=session.cogs.id, session__block=session.block,
+                                            ta__user_id=request.user.id, start__gt=evaluation.start).order_by('start')
+    if evaluations.exists():
+        next_evaluation = evaluations[0]
+    else:
+        next_evaluation = None
+
     return render(request, 'eece496/attendance.html', {
         'evaluation_form': evaluation_form,
         'group_form': group_form,
         'formset': formset,
         'evaluation': evaluation,
+        'next_evaluation': next_evaluation,
     })
 
 def select_evaluatee(attendances):
@@ -135,8 +158,8 @@ def select_evaluatee(attendances):
             attendance_ids.append(attendance.id)
     # Among the chosen students, select the student with the highest number of approved absences
     num_scores = None
-    attendances = Attendance.objects.filter(id__in=attendance_ids)
-    for attendance in attendances:
+    prioritized_attendances = Attendance.objects.filter(id__in=attendance_ids)
+    for attendance in prioritized_attendances:
         student = attendance.student
         count = student.attendance_set.exclude(excused=True).count()
         if num_scores == None or count < num_scores:
