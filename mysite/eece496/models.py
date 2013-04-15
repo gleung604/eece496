@@ -60,7 +60,6 @@ class Evaluation(models.Model):
     start = models.TimeField()
     end = models.TimeField()
     ta = models.ForeignKey(TA)
-    next_evaluation = models.ForeignKey('self', null=True, blank=True)
     def __unicode__(self):
         #return formats.date_format(self.start, "SHORT_DATETIME_FORMAT")
         return str(self.start)

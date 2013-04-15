@@ -24,6 +24,7 @@ class EvaluationInline(admin.TabularInline):
 class COGSAdmin(admin.ModelAdmin):
     inlines = [SessionInline]
     list_display = ('name', 'date', 'course')
+    date_hierarchy = 'date'
 
 class GroupAdmin(admin.ModelAdmin):
     inlines = [StudentInline]
@@ -39,23 +40,42 @@ class CourseAdmin(admin.ModelAdmin):
 
 class EvaluationAdmin(admin.ModelAdmin):
     inlines = [AttendanceInline]
-    list_display = ('ta', 'block', 'room')
+    list_filter = ('ta', 'session__block', 'session__room', 'session__cogs')
+    list_display = ('ta', 'block', 'room', 'cogs')
 
     def block(self, obj):
         return obj.session.block
+    block.admin_order_field = 'session__block'
 
     def room(self, obj):
         return obj.session.room
+    room.admin_order_field = 'session__room'
+
+    def cogs(self, obj):
+        return obj.session.cogs
 
 class StudentAdmin(admin.ModelAdmin):
+    fields = (('first_name', 'last_name'), 'student_number', 'group', 'program')
     inlines = [AttendanceInline]
+    search_fields = ['first_name', 'last_name', 'student_number', 'group']
     list_display = ('first_name', 'last_name', 'student_number', 'group')
+    list_display_links = ('first_name', 'last_name')
 
 class AttendanceAdmin(admin.ModelAdmin):
     list_display = ('student', 'evaluation', 'absent', 'excused')
 
 class TAAdmin(admin.ModelAdmin):
     inlines = [EvaluationInline]
+    search_fields = ['user__first_name', 'user__last_name']
+    list_display = ('number', 'name')
+    list_display_links = ('name',)
+
+    def name(self, obj):
+        return obj.user.first_name + ' ' + obj.user.last_name
+    name.admin_order_field = 'user__first_name'
+
+class SessionTimeAdmin(admin.ModelAdmin):
+    list_display = ('block', 'start', 'end')
 
 admin.site.register(Course, CourseAdmin)
 admin.site.register(COGS, COGSAdmin)
@@ -65,4 +85,4 @@ admin.site.register(Attendance, AttendanceAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(Evaluation, EvaluationAdmin)
 admin.site.register(TA, TAAdmin)
-admin.site.register(SessionTime)
+admin.site.register(SessionTime, SessionTimeAdmin)
