@@ -77,7 +77,7 @@ def attendance(request, cogs_id, session_id, evaluation_id):
                                                   extra=0, form=AttendanceForm)
         attendance = None
         if evaluation.evaluatee == None:
-            attendance = selectEvaluatee(attendances)
+            attendance = select_evaluatee(attendances)
 
     except Attendance.DoesNotExist:
         return Http404
@@ -115,18 +115,39 @@ def attendance(request, cogs_id, session_id, evaluation_id):
         'evaluation': evaluation,
     })
 
-
-def selectEvaluatee(attendances):
+def select_evaluatee(attendances):
+    """Selects an evaluatee based on the number of individual scores they have accrued and
+    whether they have any excused absences. A higher count means a lower priority."""
+    # Determines lowest number of scores that a student in this evaluation has
     num_scores = None
     for attendance in attendances:
         student = attendance.student
         count = student.attendance_set.exclude(individual_score__exact=None).count()
         if num_scores == None or count < num_scores:
             num_scores = count
-            evaluatee = attendances.get(student_id=student.id)
+    # Create a queryset containing only students with the lowest number of scores
+    attendance_ids = []
+    excused_ids = []
+    for attendance in attendances:
+        student = attendance.student
+        count = student.attendance_set.exclude(individual_score__exact=None).count()
+        if count == num_scores:
+            attendance_ids.append(attendance.id)
+    # Among the chosen students, select the student with the highest number of approved absences
+    num_scores = None
+    attendances = Attendance.objects.filter(id__in=attendance_ids)
+    for attendance in attendances:
+        student = attendance.student
+        count = student.attendance_set.exclude(excused=True).count()
+        if num_scores == None or count < num_scores:
+            num_scores = count
+            evaluatee = attendance
     return evaluatee
 
-def upload(request):
+@login_required
+def update(request):
+    """A temporary function to call the python script that parses three csv files and updates
+    the database with the given data."""
     # Populate database with COGS and TAs
     reader = csv.reader(open("C:/Users/Gary/dev/mysite/TA Duties.csv"))
     g = models.Group.objects.get(name='TA')
@@ -137,12 +158,14 @@ def upload(request):
             for j, line in enumerate(ta_duties[0]):
                 #print line[0:4]
                 if line[0:4] == "E253":
+                    # Creates a COGS with the given date
                     date = datetime.strptime(ta_duties[1][j], "%b-%d")
                     date = date.replace(year=dt.today().year)
                     cogs, created = COGS.objects.get_or_create(name=ta_duties[0][j][4:], date=date,
                                                                course=Course.objects.get(course_code=ta_duties[0][j][0:4]))
                     cogs.save()
         if row[0] != '':
+            # Create TA users if they do not already exist
             username = str(row[1]).lower() + str(row[2]).lower()
             try:
                 user = User.objects.get(username=username)
@@ -155,6 +178,7 @@ def upload(request):
             ta.save()
             g.user_set.add(ta.user)
         if i == 16:
+            # Create session times (eg. A, B, C, D)
             times = ta_duties[i][1]
             #print times
             times = times.split(": ")
@@ -186,8 +210,8 @@ def upload(request):
             break
     # Populate database with Session, Student, Group data
     reader = csv.reader(open("C:/Users/Gary/dev/mysite/E253.csv"))
-    time = ''
-    room = ''
+    time = None
+    room = None
     evaluation = None
     attendance = None
     group = None
@@ -196,7 +220,9 @@ def upload(request):
     for z, row in enumerate(reader):
         e253.append(row)
         if z > 2:
+            # Repeat procedure for every COGS
             for cogs in COGS.objects.all():
+                # Create sessions
                 if row[0] != '':
                     time = row[0]
                     start, end = time.split("-")
@@ -207,12 +233,15 @@ def upload(request):
                 session, created = Session.objects.get_or_create(cogs=cogs, room=room,
                                                                  block=SessionTime.objects.get(start=start, end=end))
                 session.save()
+
+                # Depending on session time, select different tables in the csv file
                 table = None
                 if session.block.block in room_sched[2][0][0:3]:
                     table = room_sched[2:10]
                 elif session.block.block in room_sched[11][0][0:3]:
                     table = room_sched[11:19]
                 if table != None:
+                    # Combine information from Room Sched and TA Duties files to determine TA for this session
                     for j, heading in enumerate(table[0]):
                         # Get list of TAs for a session time
                         if room[5:8] == heading[1:]:
@@ -243,9 +272,11 @@ def upload(request):
                                 evaluation.save()
                             break
                 if row[2] != '':
+                    # Create group
                     group, created = Group.objects.get_or_create(group_code=row[2])
                     group.save()
                 if row[3] != '':
+                    # Create student, add student to group, create attendace to current evaluation
                     student, created = Student.objects.get_or_create(student_number=row[3], first_name=row[5],
                                                                  last_name=row[4], group=group)
                     student.save()
@@ -253,5 +284,5 @@ def upload(request):
                         attendance, created = Attendance.objects.get_or_create(student=student, evaluation=evaluation)
                         attendance.save()
                 
-    return render(request, 'eece496/upload.html', {
+    return render(request, 'eece496/update.html', {
     })

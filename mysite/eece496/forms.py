@@ -26,6 +26,7 @@ class GroupForm(forms.Form):
 class EvaluationForm(forms.ModelForm):
     "Form to input individual score for an evaluatee or volunteer"
     individual_score = forms.IntegerField(label='score', required=False)
+    volunteer = forms.BooleanField(initial=False, required=False)
     evaluation = models.ForeignKey(Evaluation)
 
     def __init__(self, *args, **kwargs):
@@ -38,6 +39,7 @@ class EvaluationForm(forms.ModelForm):
             initial = kwargs.get('initial', {})
             initial['evaluatee'] = evaluation.evaluatee
             initial['individual_score'] = Attendance.objects.get(student_id=evaluation.evaluatee.id, evaluation_id=evaluation.id).individual_score
+            initial['volunteer'] = Attendance.objects.get(student_id=evaluation.evaluatee.id, evaluation_id=evaluation.id).volunteer
             kwargs['initial'] = initial
         elif attendance:
             initial = kwargs.get('initial', {})
@@ -59,6 +61,7 @@ class EvaluationForm(forms.ModelForm):
         evaluatee = Student.objects.get(pk=instance.evaluatee.id)
         attendance = Attendance.objects.get(student_id=evaluatee.id, evaluation_id=instance.id)
         attendance.individual_score = self.cleaned_data.get('individual_score')
+        attendance.volunteer = self.cleaned_data.get('volunteer')
         attendance.save()
         if commit:
             instance.save()
