@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from eece496.models import COGS, Session, Attendance, Evaluation
 
 urlpatterns = patterns('',
-    url(r'^$', 'eece496.views.cogs'),
+    url(r'^$', 'eece496.views.past'),
     url(r'^today/$', 'eece496.views.today'),
     url(r'^(?P<cogs_id>\d+)/$', 'eece496.views.sessions'),
     url(r'^upload/$', 'eece496.views.upload'),
