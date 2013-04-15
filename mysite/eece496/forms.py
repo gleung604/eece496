@@ -21,7 +21,22 @@ class AttendanceForm(forms.ModelForm):
         
 class GroupForm(forms.Form):
     "Form to input a group score for a session"
-    score = forms.IntegerField(label='group score')
+    score = forms.IntegerField(label='group score', required=False)
+
+    def __init__(self, *args, **kwargs):
+        evaluation = kwargs.pop('evaluation', None)
+        group_score = 0
+        for attendance in evaluation.attendance_set.all():
+            if attendance.group_score == None:
+                group_score = None
+                break
+            elif attendance.group_score > group_score:
+                group_score = attendance.group_score
+                break
+        initial = kwargs.get('initial', {})
+        initial['score'] = group_score
+        kwargs['initial'] = initial
+        super(GroupForm, self).__init__(*args, **kwargs)
 
 class EvaluationForm(forms.ModelForm):
     "Form to input individual score for an evaluatee or volunteer"

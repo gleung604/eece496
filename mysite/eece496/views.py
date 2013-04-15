@@ -84,7 +84,7 @@ def attendance(request, cogs_id, session_id, evaluation_id):
     
     if request.method == 'POST': # If the form has been submitted...
         evaluation_form = EvaluationForm(request.POST, instance=evaluation, attendance=attendance)
-        group_form = GroupForm(request.POST)
+        group_form = GroupForm(request.POST, evaluation=evaluation)
         formset = AttendanceFormSet(request.POST, request.FILES, instance=evaluation) # A form bound to the POST data
         if formset.is_valid(): # All validation rules pass
             # Process the data in form.cleaned_data
@@ -119,7 +119,7 @@ def attendance(request, cogs_id, session_id, evaluation_id):
             return HttpResponseRedirect('') # Redirect after POST
     else:
         evaluation_form = EvaluationForm(instance=evaluation, attendance=attendance)
-        group_form = GroupForm()
+        group_form = GroupForm(evaluation=evaluation)
         formset = AttendanceFormSet(instance=evaluation) # An unbound form
 
     session = Session.objects.get(pk=session_id)
