@@ -9,8 +9,11 @@
 {% if user.is_authenticated %}
 <p><a href="/eece496/">Past Sessions</a></p>
 <p><a href="/eece496/today">Today's Sessions</a></p>
+<p><a href="/eece496/update1">Update Database 1</a></p>
+<p><a href="/eece496/update2">Update Database 2</a></p>
 {% else %}
-<p><a href="/accounts/login/">Login</a></p>
+<p><a href="/accounts/login/">TA Login</a></p>
+<p><a href="/admin/">Admin Login</a></p>
 {% endif %}
 
 {% endblock %}

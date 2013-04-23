@@ -64,7 +64,10 @@ class StudentAdmin(admin.ModelAdmin):
 class AttendanceAdmin(admin.ModelAdmin):
     search_fields = ['student__first_name', 'student__last_name']
     list_filter = ('evaluation__start', 'absent', 'excused')
-    list_display = ('student', 'evaluation', 'absent', 'excused')
+    list_display = ('student', 'session', 'absent', 'excused')
+
+    def session(self, obj):
+        return obj.evaluation.session.room
 
 class TAAdmin(admin.ModelAdmin):
     inlines = [EvaluationInline]

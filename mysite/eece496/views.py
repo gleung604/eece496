@@ -56,7 +56,7 @@ def evaluations(request, cogs_id, session_id):
     "Get evaluations for a given session"
     try:
         ta = TA.objects.get(user_id=request.user.id)
-        evaluations = Session.objects.get(pk=session_id).evaluation_set.filter(ta_id=ta.id)
+        evaluations = Session.objects.get(pk=session_id).evaluation_set.filter(ta_id=ta.id).exclude(student=None)
         session = Session.objects.get(pk=session_id)
     except Evaluation.DoesNotExist:
         raise Http404
@@ -124,7 +124,7 @@ def attendance(request, cogs_id, session_id, evaluation_id):
 
     session = Session.objects.get(pk=session_id)
     evaluations = Evaluation.objects.filter(session__cogs_id=session.cogs.id, session__block=session.block,
-                                            ta__user_id=request.user.id, start__gt=evaluation.start).order_by('start')
+                                            ta__user_id=request.user.id, start__gt=evaluation.start).exclude(student=None).order_by('start')
     if evaluations.exists():
         next_evaluation = evaluations[0]
     else:
@@ -143,6 +143,7 @@ def select_evaluatee(attendances):
     whether they have any excused absences. A higher count means a lower priority."""
     # Determines lowest number of scores that a student in this evaluation has
     num_scores = None
+    evaluatee = None
     for attendance in attendances:
         student = attendance.student
         count = student.attendance_set.exclude(individual_score__exact=None).count()
@@ -172,7 +173,7 @@ def update1(request):
     """A temporary function to call the python script that parses three csv files and updates
     the database with the given data."""
     # Populate database with COGS and TAs
-    reader = csv.reader(open("C:/Users/Gary/dev/mysite/TA Duties.csv"))
+    reader = csv.reader(open("C:/Users/Gary/production/mysite/TA Duties.csv"))
     g = models.Group.objects.get(name='TA')
     ta_duties = []
     for i, row in enumerate(reader):
@@ -221,7 +222,7 @@ def update1(request):
         
     # Link TA objects to sessions/evaluations
     groups = {}
-    reader = csv.reader(open("C:/Users/Gary/dev/mysite/Room Sched.csv"))
+    reader = csv.reader(open("C:/Users/Gary/production/mysite/Room Sched.csv"))
     start = False
     time = None
     session = None
@@ -232,7 +233,7 @@ def update1(request):
         if "EECE 261 Times " in row:
             break
     # Populate database with Session, Student, Group data
-    reader = csv.reader(open("C:/Users/Gary/dev/mysite/E253.csv"))
+    reader = csv.reader(open("C:/Users/Gary/production/mysite/E253.csv"))
     time = None
     room = None
     evaluation = None
