@@ -8,7 +8,4 @@ urlpatterns = patterns('',
     url(r'^(?P<cogs_id>\d+)/(?P<session_id>\d+)/(?P<evaluation_id>\d+)/$',
         'eece496.views.attendance',
         name='attendance_form'),
-    # Temporary views to run a parsing script to update the database
-    url(r'^update1/$', 'eece496.views.update1'),
-    url(r'^update2/$', 'eece496.views.update2'),
 )
