@@ -36,7 +36,7 @@ class Command(BaseCommand):
                         cogs.save()
             if row[0] != '':
                 # Create TA users if they do not already exist
-                username = str(row[1]).lower() + str(row[2]).lower()
+                username = str(row[1]).lower() + str(row[2]).lower() + str(row[0])
                 try:
                     user = User.objects.get(username=username)
                 except User.DoesNotExist:
