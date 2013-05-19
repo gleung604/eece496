@@ -9,11 +9,14 @@ from django.contrib.auth import models
 from django.contrib.auth.models import User
 from eece496.models import SessionTime, Course, COGS, Group, Attendance, Evaluation, Session, Student, TA
 from eece496.forms import EvaluationForm, GroupForm, AttendanceForm
+from datetime import datetime, timedelta
+from datetime import date as dt
+from datetime import time as tm
 
 @login_required
 def past(request):
     "Get a list of past COGS"
-    cogs = COGS.objects.filter(date__lte=dt(2013, 2, 11))
+    cogs = COGS.objects.filter(date__lte=dt.today())
 
     return render(request, 'eece496/cogs.html', {
         'cogs_list': cogs,
@@ -22,7 +25,7 @@ def past(request):
 @login_required
 def today(request):
     "Get a list of upcoming evaluations for today"
-    cogs = COGS.objects.filter(date=dt(2013, 1, 11))
+    cogs = COGS.objects.filter(date=dt.today())
     evaluations = TA.objects.get(user_id=request.user.id).evaluation_set.exclude(student=None)
     sessions = Session.objects.filter(evaluation__in=evaluations.all(), cogs__in=cogs, block__end__gte=tm(8))
     evaluations = Evaluation.objects.filter(session__in=sessions, ta__user_id=request.user.id).order_by('start')
